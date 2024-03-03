@@ -133,6 +133,44 @@ void postordine()
 	printf("\n");
 }
 
+int inaltime_arbore()
+{
+	int max_height, i;
+	max_height = 0;
+	for(i=0; i<MAX; i++)
+	{
+		int height = 0;
+		int curr = i;
+		while(parinte[curr] != -1)
+		{
+			height++;
+			curr = parinte[curr];
+		}
+		if(height > max_height)
+		{
+			max_height = height;
+		}
+	}
+	return max_height;
+}
+
+//functia returnează numărul de frați al unei chei
+int numar_frati(int cheie)
+{
+	int count, i, cheie_parinte, sibling;
+	count = 0;
+	cheie_parinte = parinte[cheie];
+	sibling = frate_stanga[cheie_parinte]; 
+
+	while(sibling != -1)
+	{
+		//cat timp primul frate exista, putem trece mai departe cu parcurgerea
+		count++;
+		sibling = frate_dreapta[sibling]; //aici actualizam ca primul frate sa devina al doilea
+		//pentru a putea parcurge pe rand toti fratii
+	}
+	return count;
+}
 
 int main(void)
 {
