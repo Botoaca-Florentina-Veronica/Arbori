@@ -1,23 +1,33 @@
 #ifndef BIBLIOTECA_H
 #define BIBLIOTECA_H
 
-typedef struct Student {
+typedef struct Student{
     char nume[50];
-    int nota;
     int varsta;
-    struct Student *left;
-    struct Student *right;
+    float nota;
 } Student;
 
+typedef struct node {
+    Student student;
+    struct node *left;
+    struct node *right;
+}node;
+
+typedef node* Arbore;
+
 // Prototipurile funcțiilor din bibliotecă
-Student *createNode(char nume[], int nota, int varsta);
-Student *insertNode(Student *radacina, char nume[], int nota, int varsta);
-Student *findMinNode(Student *node);
-Student *deleteNode(Student *radacina, char nume[]);
-Student *searchNode(Student *radacina, char nume[]);
-void preOrderTraversal(Student *radacina);
-void inOrderTraversal(Student *radacina);
-void postOrderTraversal(Student *radacina);
-void freeTree(Student *radacina);
+Arbore initializareArbore();
+node *createNode(Student student);
+void addNode(Arbore *radacina, Student student);
+node *findMin(node *nod);
+node *deleteNod(node *radacina, char *nume);
+void preOrderTraversal(Arbore radacina);
+void inOrderTraversal(Arbore radacina);
+void postOrderTraversal(Arbore radacina);
+void readingFromBinaryFile(const char *fileName, Student *studenti, int nrInregistrari);
+void readRegistration(const char *fileName, Student *student, int nrInregistrare);
+void writeTreeInTextFile(Arbore arbore, const char *fileName);
+void writeNodeInTextFile(Arbore arbore, FILE *file); 
+void freeTree(Arbore radacina);
 
 #endif
