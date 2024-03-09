@@ -1,33 +1,31 @@
 #ifndef BIBLIOTECA_H
 #define BIBLIOTECA_H
 
-typedef struct Student{
-    char nume[50];
-    int varsta;
-    float nota;
-} Student;
+// Structura pentru înregistrările din fisierul binar
+typedef struct {
+    int h1;
+    float a1;
+} Inregistrare;
 
-typedef struct node {
-    Student student;
-    struct node *left;
-    struct node *right;
-}node;
+// Structura pentru nodurile arborelui binar
+typedef struct arbore {
+    int cheie; // h1
+    struct arbore *stanga;
+    struct arbore *dreapta;
+    int index;
+} NodArbore;
 
-typedef node* Arbore;
 
 // Prototipurile funcțiilor din bibliotecă
-Arbore initializareArbore();
-node *createNode(Student student);
-void addNode(Arbore *radacina, Student student);
-node *findMin(node *nod);
-node *deleteNod(node *radacina, char *nume);
-void preOrderTraversal(Arbore radacina);
-void inOrderTraversal(Arbore radacina);
-void postOrderTraversal(Arbore radacina);
-void readingFromBinaryFile(const char *fileName, Student *studenti, int nrInregistrari);
-void readRegistration(const char *fileName, Student *student, int nrInregistrare);
-void writeTreeInTextFile(Arbore arbore, const char *fileName);
-void writeNodeInTextFile(Arbore arbore, FILE *file); 
-void freeTree(Arbore radacina);
+int generare_aleatoare(int min, int max);
+void creare_fisier_binar(const char *nume_fisier);
+void adauga_nod_arbore(NodArbore **radacina, int cheie, int index);
+float cautare_fisier_binar(const char *nume_fisier, int cheie, int *numar_comparatii);
+float cautare_arbore(NodArbore *radacina, int cheie, int *numar_comparatii);
+NodArbore *sterge_nod_arbore(NodArbore *radacina, int cheie);
+void preordine(NodArbore *radacina);
+void inordine(NodArbore *radacina);
+void postordine(NodArbore *radacina);
+void freeTree(NodArbore *radacina);
 
 #endif
