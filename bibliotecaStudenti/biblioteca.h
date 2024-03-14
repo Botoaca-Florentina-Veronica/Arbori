@@ -20,9 +20,11 @@ typedef struct arbore {
 int generare_aleatoare(int min, int max);
 void creare_fisier_binar(const char *nume_fisier);
 void adauga_nod_arbore(NodArbore **radacina, int cheie, int index);
-float cautare_fisier_binar(const char *nume_fisier, int cheie, int *numar_comparatii);
-float cautare_arbore(NodArbore *radacina, int cheie, int *numar_comparatii);
-NodArbore *sterge_nod_arbore(NodArbore *radacina, int cheie);
+float cautare_fisier_binar(const char *nume_fisier, int cheie, int *nr_comparatii);
+float cautare_arbore(NodArbore *radacina, int cheie, int *nr_comparatii);
+NodArbore *FindMin(NodArbore* nod);
+NodArbore *stergere_nod_arbore(NodArbore *radacina, int cheie);
+NodArbore *cauta_cheie(NodArbore *radacina, int cheie);
 void preordine(NodArbore *radacina);
 void inordine(NodArbore *radacina);
 void postordine(NodArbore *radacina);
