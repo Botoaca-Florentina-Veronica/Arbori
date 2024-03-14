@@ -5,13 +5,11 @@
 int main(void) 
 {
     int i;
-    // Creare și populare fișier binar
     creare_fisier_binar("fisier_binar.dat");
 
-    // Creare arbore binar ordonat
     NodArbore *radacina = NULL;
-    FILE *f = fopen("fisier_binar.dat", "rb");
-    if (f == NULL) 
+    FILE *file = fopen("fisier_binar.dat", "rb");
+    if (file == NULL) 
     {
         printf("Eroare la deschiderea fisierului.\n");
         return 1;
@@ -20,10 +18,11 @@ int main(void)
     Inregistrare inregistrare;
     for (i = 0; i < 1000; i++) 
     {
-        fread(&inregistrare, sizeof(Inregistrare), 1, f);
+        //citim o inregistrare una, cate una
+        fread(&inregistrare, sizeof(Inregistrare), 1, file);
         adauga_nod_arbore(&radacina, inregistrare.h1, i);
     }
-    fclose(f);
+    fclose(file);
 
     // Căutare în fisierul binar și în arbore binar ordonat
     int cheie;
@@ -58,7 +57,7 @@ int main(void)
     int cheie_sters;
     printf("Introduceti o valoare pentru stergere din arbore: ");
     scanf("%d", &cheie_sters);
-    radacina = sterge_nod_arbore(radacina, cheie_sters);
+    radacina = stergere_nod_arbore(radacina, cheie_sters);
     printf("Arborele dupa stergerea nodului %d:\n", cheie_sters);
     inordine(radacina);
     printf("\n");
