@@ -1,33 +1,6 @@
-/*
-Scrieti o biblioteca in C in care sa implementati urmatoarele:
--creeaza un fisier binar cu 1000 inregistrari cu structura
-{
-   int h1;
-   float a1;
-}
-fisierul contine valori random!
-
--functie de creeare si adaugare noduri pentru un arbore binar ordonat
-unde cheia este h1. Structura arbore binar:
-typedef struct arbore{
-   int cheie;  //h1
-   arbore *stanga;
-   arbore *dreapta;
-   int index;
-}
-unde index este indexul inregistrarii din fisier(incepe de la 0).
-
--se citeste de la tastatura un un numar intreg, iar cu el se vor face
-2 cautari:
-    *cautam in fisierul binar, dupa h1 si afisam pe ecran valoarea lui a1,
-         si calculam numarul de comparratii
-    *cealalta cautare se realizeaza in arborele binar ordonat si se cauta dupa h1,
-         si se afiseaza valoarea a1 din fisierul binar, iar apoi se calculeaza
-         numarul de comparatii
-cautarile se vor realiza folosind fseek+indice
-*/
-
-
+// notite
+//pagina terminala inseamna ca p0 e null
+// ex de intrebare pt examen la arbori B, cate elemente contine pagina cu cea mai mica medie(considerand ca fiecare nod contine o nota)
 #include <stdlib.h>
 #include <stdio.h>
 #include "arbori_b.h"
@@ -245,30 +218,40 @@ void afisare(Pagina *arbore, int nivel)
 
 int cautare(Pagina *pag, TipCheie x, int *numarComparatii) 
 {
-    /*Cauta cheia x in arbore. Returneaza 1 daca cheia exista, 0 daca nu exista.*/
-    int s, d, mij;
-
-    if (pag == NULL)
+    /* Caută cheia x în arbore. Returnează 1 dacă cheia există, 0 dacă nu există. */
+    if (pag == NULL) 
+	{
         return 0;
+    }
 
-    s = 1;
-    d = pag->m;
+    int s = 1;
+    int d = pag->m;
     while (s <= d) 
-    { //cautare binara
+	{
         (*numarComparatii)++;
-        mij = (s + d) / 2;
-        if (x == pag->e[mij].cheie)
+        int mij = (s + d) / 2;
+        if (x == pag->e[mij].cheie) 
+		{
             return 1;
-        if (x < pag->e[mij].cheie)
+        } 
+		else if (x < pag->e[mij].cheie) 
+		{
             d = mij - 1;
-        else
+        } 
+		else 
+		{
             s = mij + 1;
+        }
     }
-    if (d == 0)
-    {
-        return cautare(pag->p0, x, numarComparatii);
+
+    if (s > pag->m) 
+	{
+        return cautare(pag->e[pag->m].p, x, numarComparatii);
+    } 
+	else 
+	{
+        return cautare(pag->e[s].p, x, numarComparatii);
     }
-    return cautare(pag->e[d].p, x, numarComparatii);
 }
 
 
@@ -282,7 +265,9 @@ void vecinStang(Pagina *pag, Pagina *st, Pagina *r, int d)
 		st->e[N + 1].p = r->p0;
 		st->m = NN;
 		for (i = N + 2; i <= NN; i++)
+		{
 			st->e[i] = r->e[i - N - 1];
+		}
 
 		for (i = d; i < pag->m; i++)
 			pag->e[i] = pag->e[i + 1];
@@ -293,7 +278,9 @@ void vecinStang(Pagina *pag, Pagina *st, Pagina *r, int d)
 	{
 		r->m = N;
 		for (i = N; i > 1; i--)
+		{
 			r->e[i] = r->e[i - 1];
+		}
 		r->e[1] = pag->e[d];
 		r->e[1].p = r->p0;
 		r->p0 = st->e[st->m].p;
