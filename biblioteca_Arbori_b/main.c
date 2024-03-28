@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include "arbori_b.h"
 
-#define NUMAR_INREGISTRARI 500
-#define NUMAR_CHEI_CAUTARE 2
+#define NUMAR_INREGISTRARI 1000
+#define NUMAR_CHEI_CAUTARE 1
 
 Pagina *radacina;
 
@@ -42,7 +42,7 @@ int main(void)
     */
 
     // Parcurgere arbore B
-    /*
+    
     printf("Parcurgere in inordine:\n");
     inordine(radacina);
     printf("\n\n");
@@ -54,7 +54,7 @@ int main(void)
     printf("Parcurgere in postordine:\n");
     postordine(radacina);
     printf("\n\n");
-    */
+    
 
      int i;
     // Exemplu de cautare în arbore B și afișare a numărului de comparații
