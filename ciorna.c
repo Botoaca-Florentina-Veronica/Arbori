@@ -139,16 +139,16 @@ Metadata create_metadata(const char *path) {
 }
 
 // Funcția pentru salvarea metadatelor într-un fișier de snapshot
-void save_snapshot(const char *output_dir, const char *dir_name, Metadata *metadata, int count) {
+void save_snapshot(const char *dir_path, Metadata *metadata, int count) {
     char snapshot_path[256];
-    sprintf(snapshot_path, "%s/Snapshot_%s.txt", output_dir, dir_name);
+    sprintf(snapshot_path, "%s/Snapshot.txt", dir_path);
     FILE *f = fopen(snapshot_path, "w");
     if (f == NULL) {
         perror("Eroare la deschiderea fișierului de snapshot");
         exit(EXIT_FAILURE);
     }
 
-    fprintf(f, "Snapshot pentru directorul: %s\n\n", dir_name);
+    fprintf(f, "Snapshot pentru directorul: %s\n\n", dir_path);
     for (int i = 0; i < count; i++) {
         fprintf(f, "Metadate pentru: %s\n", metadata[i].name);
         fprintf(f, "Tip: %c\n", metadata[i].type);
@@ -241,12 +241,48 @@ int main(int argc, char *argv[]) {
             dir_name++; // Ignorăm caracterul '/'
         }
         create_snapshot(argv[i], metadata, &count);
-        save_snapshot(output_dir, dir_name, metadata, count);
+        save_snapshot(argv[i], metadata, count);
         count = 0; // Resetăm numărul de metadate pentru următorul director
     }
+    
+    // Creăm fișierul de snapshot global
+    char global_snapshot_path[256];
+    sprintf(global_snapshot_path, "%s/Global_Snapshot.txt", output_dir);
+    FILE *global_snapshot = fopen(global_snapshot_path, "w");
+    if (global_snapshot == NULL) {
+        perror("Eroare la deschiderea fișierului de snapshot global");
+        exit(EXIT_FAILURE);
+    }
+    
+    fprintf(global_snapshot, "Snapshot pentru toate directoarele:\n\n");
+    for (int i = 3; i < argc; i++) {
+        char *dir_name = strrchr(argv[i], '/');
+        if (dir_name == NULL) {
+            dir_name = argv[i];
+        } else {
+            dir_name++; // Ignorăm caracterul '/'
+        }
+        char snapshot_path[256];
+        sprintf(snapshot_path, "%s/Snapshot.txt", argv[i]);
+        FILE *snapshot = fopen(snapshot_path, "r");
+        if (snapshot == NULL) {
+            perror("Eroare la deschiderea fișierului de snapshot");
+            exit(EXIT_FAILURE);
+        }
+        
+        char line[256];
+        fprintf(global_snapshot, "Snapshot pentru directorul: %s\n\n", dir_name);
+        while (fgets(line, sizeof(line), snapshot) != NULL) {
+            fprintf(global_snapshot, "%s", line);
+        }
+        fprintf(global_snapshot, "\n");
+        fclose(snapshot);
+    }
+    fclose(global_snapshot);
     
     free(metadata); // Eliberăm memoria alocată dinamic
 
     printf("Snapshot-urile pentru toate directoarele au fost create cu succes în directorul de ieșire: %s\n", output_dir);
     return 0;
 }
+
