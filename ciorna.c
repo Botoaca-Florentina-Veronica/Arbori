@@ -106,14 +106,16 @@ De exemplu, comanda pentru a rula programul va fi:
 
 // Structura pentru metadatele unui fișier sau director
 typedef struct {
-    char name[256]; // Numele fișierului sau directorului
-    char type;      // 'F' pentru fișier, 'D' pentru director
-    time_t last_modified; // Data ultimei modificări
+    char name[256];         // Numele fișierului sau directorului
+    char type;              // 'F' pentru fișier, 'D' pentru director
+    time_t last_modified;   // Data ultimei modificări
+    mode_t permissions;     // Permisiunile fișierului
+    ino_t inode_number;     // Numărul inode al fișierului
+    off_t size;             // Dimensiunea fișierului
 } Metadata;
 
 // Funcția pentru crearea metadatelor unui fișier sau director
-Metadata create_metadata(const char *path) 
-{
+Metadata create_metadata(const char *path) {
     Metadata metadata;
     struct stat st;
     stat(path, &st);
@@ -121,36 +123,51 @@ Metadata create_metadata(const char *path)
 
     // Verificăm dacă fișierul este director
     DIR *dir = opendir(path);
-    if (dir != NULL)
-    {
+    if (dir != NULL) {
         closedir(dir);
         metadata.type = 'D';
-    }
-    else
-    {
+    } else {
         metadata.type = 'F';
     }
 
     metadata.last_modified = st.st_mtime;
+    metadata.permissions = st.st_mode;
+    metadata.inode_number = st.st_ino;
+    metadata.size = st.st_size;
+
     return metadata;
 }
 
 // Funcția pentru salvarea metadatelor într-un fișier de snapshot
-void save_snapshot(const char *output_dir, Metadata *metadata, int count) 
-{
+void save_snapshot(const char *output_dir, const char *dir_name, Metadata *metadata, int count) {
     char snapshot_path[256];
-    sprintf(snapshot_path, "%s/Snapshot.txt", output_dir);
+    sprintf(snapshot_path, "%s/Snapshot_%s.txt", output_dir, dir_name);
     FILE *f = fopen(snapshot_path, "w");
-    if (f == NULL) 
-    {
+    if (f == NULL) {
         perror("Eroare la deschiderea fișierului de snapshot");
         exit(EXIT_FAILURE);
     }
 
-    fprintf(f, "Snapshot pentru toate directoarele:\n\n");
-    for (int i = 0; i < count; i++) 
-    {
-        fprintf(f, "Snapshot pentru directorul: %s\n", metadata[i].name);
+    fprintf(f, "Snapshot pentru directorul: %s\n\n", dir_name);
+    for (int i = 0; i < count; i++) {
+        fprintf(f, "Metadate pentru: %s\n", metadata[i].name);
+        fprintf(f, "Tip: %c\n", metadata[i].type);
+        fprintf(f, "Ultima modificare: %s", ctime(&metadata[i].last_modified));
+        fprintf(f, "Permisiuni: ");
+        fprintf(f, (metadata[i].permissions & S_IRUSR) ? "r" : "-");
+        fprintf(f, (metadata[i].permissions & S_IWUSR) ? "w" : "-");
+        fprintf(f, (metadata[i].permissions & S_IXUSR) ? "x" : "-");
+        fprintf(f, (metadata[i].permissions & S_IRGRP) ? "r" : "-");
+        fprintf(f, (metadata[i].permissions & S_IWGRP) ? "w" : "-");
+        fprintf(f, (metadata[i].permissions & S_IXGRP) ? "x" : "-");
+        fprintf(f, (metadata[i].permissions & S_IROTH) ? "r" : "-");
+        fprintf(f, (metadata[i].permissions & S_IWOTH) ? "w" : "-");
+        fprintf(f, (metadata[i].permissions & S_IXOTH) ? "x" : "-");
+        fprintf(f, "\n");
+        fprintf(f, "Număr Inode: %ld\n", (long)metadata[i].inode_number);
+        if (metadata[i].type == 'F') {
+            fprintf(f, "Dimensiune: %ld octeți\n", (long)metadata[i].size);
+        }
         fprintf(f, "\n");
     }
     
@@ -158,34 +175,27 @@ void save_snapshot(const char *output_dir, Metadata *metadata, int count)
 }
 
 // Funcția pentru parcurgerea recursivă a directorului și crearea snapshot-ului
-void create_snapshot(const char *dir_path, Metadata *metadata, int *count) 
-{
+void create_snapshot(const char *dir_path, Metadata *metadata, int *count) {
     DIR *dir = opendir(dir_path);
-    if (dir == NULL) 
-    {
+    if (dir == NULL) {
         perror("Eroare la deschiderea directorului");
         exit(EXIT_FAILURE);
     }
 
     struct dirent *entry;
-    while ((entry = readdir(dir)) != NULL) 
-    {
-        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) 
-        {
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
             char path[512]; // Am mărit dimensiunea bufferului pentru a încorpora calea completă
             snprintf(path, sizeof(path), "%s/%s", dir_path, entry->d_name); // Am înlocuit sprintf cu snprintf pentru a evita posibilele probleme de buffer overflow
             
             // Verificăm dacă este un director
             DIR *subdir = opendir(path);
-            if (subdir != NULL)
-            {
+            if (subdir != NULL) {
                 closedir(subdir);
                 metadata[*count] = create_metadata(path);
                 (*count)++;
                 create_snapshot(path, metadata, count); // Apelăm recursiv funcția pentru subdirector
-            }
-            else
-            {
+            } else {
                 metadata[*count] = create_metadata(path);
                 (*count)++;
             }
@@ -194,26 +204,21 @@ void create_snapshot(const char *dir_path, Metadata *metadata, int *count)
     closedir(dir);
 }
 
-int main(int argc, char *argv[]) 
-{
-    if (argc < 5 || argc > 13) 
-    {
+int main(int argc, char *argv[]) {
+    if (argc < 5 || argc > 13) {
         printf("Utilizare: %s -o <director_iesire> <dir1> <dir2> ... <dir10>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
     char *output_dir = NULL;
-    for (int i = 1; i < argc - 1; i++) 
-    {
-        if (strcmp(argv[i], "-o") == 0) 
-        {
+    for (int i = 1; i < argc - 1; i++) {
+        if (strcmp(argv[i], "-o") == 0) {
             output_dir = argv[i + 1];
             break;
         }
     }
 
-    if (output_dir == NULL) 
-    {
+    if (output_dir == NULL) {
         printf("Opțiune invalidă pentru directorul de ieșire\n");
         printf("Utilizare: %s -o <director_iesire> <dir1> <dir2> ... <dir10>\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -222,22 +227,26 @@ int main(int argc, char *argv[])
     mkdir(output_dir, 0777); // Creăm directorul de ieșire, dacă nu există deja
     
     Metadata *metadata = malloc(sizeof(Metadata) * 1000); // Alocare dinamică a memoriei
-    if (metadata == NULL) 
-    {
+    if (metadata == NULL) {
         perror("Eroare la alocarea memoriei");
         exit(EXIT_FAILURE);
     }
     
     int count = 0;
-    for (int i = 3; i < argc; i++) 
-    {
+    for (int i = 3; i < argc; i++) {
+        char *dir_name = strrchr(argv[i], '/');
+        if (dir_name == NULL) {
+            dir_name = argv[i];
+        } else {
+            dir_name++; // Ignorăm caracterul '/'
+        }
         create_snapshot(argv[i], metadata, &count);
+        save_snapshot(output_dir, dir_name, metadata, count);
+        count = 0; // Resetăm numărul de metadate pentru următorul director
     }
     
-    save_snapshot(output_dir, metadata, count);
-
-    printf("Snapshot-ul pentru toate directoarele a fost creat cu succes în directorul de ieșire: %s\n", output_dir);
-
     free(metadata); // Eliberăm memoria alocată dinamic
+
+    printf("Snapshot-urile pentru toate directoarele au fost create cu succes în directorul de ieșire: %s\n", output_dir);
     return 0;
 }
