@@ -153,8 +153,46 @@ void save_snapshot(const char *dir_path, Metadata *metadata, int count)
     fclose(f);
 }
 
+// Funcția pentru compararea și actualizarea snapshot-urilor
+void update_snapshot(const char *dir_path, Metadata *old_metadata, Metadata *new_metadata, int count) 
+{
+    char snapshot_path[256];
+    sprintf(snapshot_path, "%s/Snapshot.txt", dir_path);
+    FILE *f = fopen(snapshot_path, "r");
+    if (f == NULL) 
+    {
+        perror("Eroare la deschiderea fișierului de snapshot");
+        exit(EXIT_FAILURE);
+    }
+
+    // Verificăm dacă există diferențe între snapshot-ul vechi și cel nou
+    int different = 0;
+    for (int i = 0; i < count; i++) 
+    {
+        if (strcmp(old_metadata[i].name, new_metadata[i].name) != 0 ||
+            old_metadata[i].type != new_metadata[i].type ||
+            difftime(old_metadata[i].last_modified, new_metadata[i].last_modified) != 0) 
+        {
+            different = 1;
+            break;
+        }
+    }
+    fclose(f);
+
+    // Dacă există diferențe, actualizăm snapshot-ul vechi cu cel nou
+    if (different) 
+    {
+        save_snapshot(dir_path, new_metadata, count);
+        printf("Snapshot-ul a fost actualizat pentru directorul: %s\n", dir_path);
+    } 
+    else 
+    {
+        printf("Nu s-au găsit diferențe între snapshot-uri pentru directorul: %s\n", dir_path);
+    }
+}
+
 // Funcția pentru parcurgerea recursivă a directorului și crearea snapshot-ului
-void create_snapshot(const char *dir_path) 
+void create_snapshot(const char *dir_path, const char *output_dir) 
 {
     DIR *dir = opendir(dir_path);
     if (dir == NULL) 
@@ -163,7 +201,12 @@ void create_snapshot(const char *dir_path)
         exit(EXIT_FAILURE);
     }
     
-    Metadata metadata[100]; // Presupunem că directorul nu conține mai mult de 100 de fișiere sau subdirectoare
+    Metadata *old_metadata = malloc(sizeof(Metadata) * 100); // Alocare dinamică a memoriei
+    if (old_metadata == NULL) 
+    {
+        perror("Eroare la alocarea memoriei");
+        exit(EXIT_FAILURE);
+    }
     int count = 0;
 
     struct dirent *entry;
@@ -179,40 +222,68 @@ void create_snapshot(const char *dir_path)
             if (subdir != NULL)
             {
                 closedir(subdir);
-                metadata[count++] = create_metadata(path);
-                create_snapshot(path); // Apelăm recursiv funcția pentru subdirector
+                old_metadata[count++] = create_metadata(path);
+                create_snapshot(path, output_dir); // Apelăm recursiv funcția pentru subdirector
             }
             else
             {
-                metadata[count++] = create_metadata(path);
+                old_metadata[count++] = create_metadata(path);
             }
         }
     }
     closedir(dir);
 
-    save_snapshot(dir_path, metadata, count);
-}
+    // Salvăm snapshot-ul vechi
+    save_snapshot(output_dir, old_metadata, count);
 
-
-
-int main(int argc, char *argv[]) 
-{
-    if (argc != 2) 
+    // Comparăm snapshot-ul vechi cu cel nou și actualizăm, dacă este cazul
+    Metadata *new_metadata = malloc(sizeof(Metadata) * 100); // Alocare dinamică a memoriei
+    if (new_metadata == NULL) 
     {
-        printf("Utilizare: %s <director>\n", argv[0]);
+        perror("Eroare la alocarea memoriei");
         exit(EXIT_FAILURE);
     }
-
-    char *dir_path = argv[1];
-    DIR *dir = opendir(dir_path);
+    dir = opendir(dir_path);
     if (dir == NULL) 
     {
         perror("Eroare la deschiderea directorului");
         exit(EXIT_FAILURE);
     }
+
+    count = 0;
+    while ((entry = readdir(dir)) != NULL) 
+    {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) 
+        {
+            char path[512]; // Am mărit dimensiunea bufferului pentru a încorpora calea completă
+            snprintf(path, sizeof(path), "%s/%s", dir_path, entry->d_name); // Am înlocuit sprintf cu snprintf pentru a evita posibilele probleme de buffer overflow
+            new_metadata[count++] = create_metadata(path);
+        }
+    }
     closedir(dir);
 
-    create_snapshot(dir_path);
-    printf("Snapshot-ul a fost creat cu succes pentru directorul: %s\n", dir_path);
+    update_snapshot(output_dir, old_metadata, new_metadata, count);
+
+    // Eliberăm memoria alocată dinamic
+    free(old_metadata);
+    free(new_metadata);
+}
+
+int main(int argc, char *argv[]) 
+{
+    if (argc < 4 || argc > 12) 
+    {
+        printf("Utilizare: %s <director_iesire> <dir1> <dir2> ... <dir10>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    char *output_dir = argv[1];
+    mkdir(output_dir, 0777); // Creăm directorul de ieșire, dacă nu există deja
+
+    for (int i = 2; i < argc; i++) 
+    {
+        create_snapshot(argv[i], output_dir);
+    }
+    printf("Snapshot-urile au fost create cu succes în directorul de ieșire: %s\n", output_dir);
     return 0;
 }
