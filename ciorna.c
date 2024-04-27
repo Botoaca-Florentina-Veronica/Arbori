@@ -1,5 +1,7 @@
 /*
 Project SO
+
+----S6----
    Subiectul proiectului este monitorizarea modificarilor aparute in directoare de-a lungul timpului, prin realizarea de capturi (snapshots) la
 cererea utilizatorului.
 Cerintele programului:
@@ -53,21 +55,45 @@ este actualizat la fiecare rulare a programului pentru a reflecta modificările 
 intrare din director într-un mod unic și să evidențieze modificările efectuate.
 
 
-      Setup inotify notifications (IN) mask. All these defined in inotify.h. 
+----S7----
 
-static int event_mask =
-  (IN_ACCESS |        // File accessed
-   IN_ATTRIB |        // File attributes changed
-   IN_OPEN   |        // File was opened
-   IN_CLOSE_WRITE |   // Writtable File closed
-   IN_CLOSE_NOWRITE | // Unwrittable File closed
-   IN_CREATE |        // File created in directory
-   IN_DELETE |        // File deleted in directory
-   IN_DELETE_SELF |   // Directory deleted
-   IN_MODIFY |        // File modified
-   IN_MOVE_SELF |     // Directory moved
-   IN_MOVED_FROM |    // File moved away from the directory
-   IN_MOVED_TO);      // File moved into the directory
+
+S7
+ Functionalitatea programului va fi actualizată pentru a permite primirea unui număr nespecificat de argumente (directoare) în linia de comandă (dar nu mai mult de 10), iar fiecare argument este diferit. 
+Logica pentru capturarea metadatelor va fi acum aplicată tuturor argumentelor primite, ceea ce înseamnă că programul va actualiza snapshot-urile pentru toate directoarele specificate de utilizator. 
+De exemplu:
+
+1./program_exe dir1 dir2 dir3 dir4
+  
+  Pentru fiecare intrare din directoarele furnizat ca argumente, utilizatorul va putea compara snapshot-ul anterior al directorului specificat cu cel actual.  
+  Dacă există diferențe între cele două snapshot-uri, captura veche va fi actualizată cu noile informații din snapshot-ul curent.
+
+ // Fișierul instantaneu vechi pentru File1.txt
+ Marca temporală: 2023-03-15 10:30:00
+ Intrare: File1.txt
+ Dimensiune: 1024 octeți
+ Ultima modificare: 2023-03-14 08:45:00
+ Permisiuni: rw-r--r--
+ Număr Inode: 12345
+
+
+ // Fişierul instantaneu nou pentru File1.txt
+ Marca temporală: 2023-03-16 11:00:00
+ Intrare: File1.txt
+ Dimensiune: 1024 octeți
+ Ultima modificare: 2023-03-16 09:15:00
+ Permisiuni: rw-r--r-x
+ Număr Inode: 12345
+
+
+În exemplele de mai sus, avem o reprezentare posibilă a unui snapshot vechi şi curent (nou) pentru File1.txt. Având în vedere că noul snapshot este diferit de cel anterior, cel vechi va fi suprascris.
+• Funcţionalitatea codului va fi extinsă astfel încât programul să primească un argument suplimentar, reprezentând directorul de ieşire în care vor fi stocate toate snapshot-urile intrărilor din directoarele specificate în linia de comandă. 
+Acest director de ieşire va fi specificat folosind opțiunea -o.
+
+De exemplu, comanda pentru a rula programul va fi:
+
+1 ./program_exe -o director_iesire dir1 dir2 dir3 dir4
+
 */
 
 #include <stdio.h>
