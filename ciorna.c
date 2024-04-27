@@ -91,14 +91,19 @@ Metadata create_metadata(const char *path)
     struct stat st;
     stat(path, &st);
     strcpy(metadata.name, path);
-    if (S_ISDIR(st.st_mode))
+
+    // Verificăm dacă fișierul este director
+    DIR *dir = opendir(path);
+    if (dir != NULL)
     {
+        closedir(dir);
         metadata.type = 'D';
     }
     else
     {
         metadata.type = 'F';
     }
+
     metadata.last_modified = st.st_mtime;
     return metadata;
 }
@@ -142,9 +147,18 @@ void create_snapshot(const char *dir_path)
         {
             char path[512]; // Am mărit dimensiunea bufferului pentru a încorpora calea completă
             snprintf(path, sizeof(path), "%s/%s", dir_path, entry->d_name); // Am înlocuit sprintf cu snprintf pentru a evita posibilele probleme de buffer overflow
-            metadata[count++] = create_metadata(path);
-            if (metadata[count-1].type == 'D') {
+            
+            // Verificăm dacă este un director
+            DIR *subdir = opendir(path);
+            if (subdir != NULL)
+            {
+                closedir(subdir);
+                metadata[count++] = create_metadata(path);
                 create_snapshot(path); // Apelăm recursiv funcția pentru subdirector
+            }
+            else
+            {
+                metadata[count++] = create_metadata(path);
             }
         }
     }
@@ -164,20 +178,15 @@ int main(int argc, char *argv[])
     }
 
     char *dir_path = argv[1];
-    struct stat st;
-    if (stat(dir_path, &st) == -1) {
-        perror("Eroare la verificarea directorului");
+    DIR *dir = opendir(dir_path);
+    if (dir == NULL) 
+    {
+        perror("Eroare la deschiderea directorului");
         exit(EXIT_FAILURE);
     }
-
-    if (!S_ISDIR(st.st_mode)) {
-        printf("%s nu este un director.\n", dir_path);
-        exit(EXIT_FAILURE);
-    }
+    closedir(dir);
 
     create_snapshot(dir_path);
-
     printf("Snapshot-ul a fost creat cu succes pentru directorul: %s\n", dir_path);
-
     return 0;
 }
