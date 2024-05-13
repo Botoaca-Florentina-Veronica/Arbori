@@ -143,50 +143,6 @@ void save_snapshot(const char *dir_path, Metadata *metadata, int count)
     fclose(f);
 }
 
-// Funcția pentru salvarea metadatelor într-un fișier de snapshot
-void save_snapshot(const char *dir_path, Metadata *metadata, int count) 
-{
-    char snapshot_path[512];
-    sprintf(snapshot_path, "%s/Snapshot.txt", dir_path);
-    FILE *f = fopen(snapshot_path, "w");
-    if (f == NULL) 
-    {
-        perror("Eroare la deschiderea fișierului de snapshot");
-        exit(EXIT_FAILURE);
-    }
-
-    fprintf(f, "Snapshot pentru directorul: %s\n\n", dir_path);
-    for (int i = 0; i < count; i++) 
-    {
-        fprintf(f, "Metadate pentru: %s\n", metadata[i].name);
-        fprintf(f, "Tip: %c\n", metadata[i].type);
-        fprintf(f, "Ultima modificare: %s", ctime(&metadata[i].last_modified));
-        fprintf(f, "Permisiuni: ");
-        fprintf(f, (metadata[i].permissions & S_IRUSR) ? "r" : "-");
-        fprintf(f, (metadata[i].permissions & S_IWUSR) ? "w" : "-");
-        fprintf(f, (metadata[i].permissions & S_IXUSR) ? "x" : "-");
-        fprintf(f, (metadata[i].permissions & S_IRGRP) ? "r" : "-");
-        fprintf(f, (metadata[i].permissions & S_IWGRP) ? "w" : "-");
-        fprintf(f, (metadata[i].permissions & S_IXGRP) ? "x" : "-");
-        fprintf(f, (metadata[i].permissions & S_IROTH) ? "r" : "-");
-        fprintf(f, (metadata[i].permissions & S_IWOTH) ? "w" : "-");
-        fprintf(f, (metadata[i].permissions & S_IXOTH) ? "x" : "-");
-        fprintf(f, "\n");
-        fprintf(f, "Număr Inode: %ld\n", (long)metadata[i].inode_number);
-        if (metadata[i].type == 'F') 
-        {
-            fprintf(f, "Dimensiune: %ld octeți\n", (long)metadata[i].size);
-        }
-        if (metadata[i].dangerous)
-        {
-            fprintf(f, "Fișier periculos!\n");
-        }
-        fprintf(f, "\n");
-    }
-    
-    fclose(f);
-}
-
 // Funcția pentru verificarea drepturilor lipsă ale fișierelor
 bool has_missing_permissions(mode_t permissions) 
 {
@@ -211,7 +167,7 @@ bool has_missing_permissions(mode_t permissions)
     return false; // Toate permisiunile necesare sunt prezente
 }
 
-// Funcția pentru crearea snapshot-ului unui director
+// Corectează apelul funcției analyze_file_syntax
 void create_snapshot(const char *dir_path, Metadata *metadata, int *count, const char *isolated_dir) 
 {
     DIR *dir = opendir(dir_path);
@@ -238,7 +194,7 @@ void create_snapshot(const char *dir_path, Metadata *metadata, int *count, const
             }
             else if (entry->d_type == DT_REG) // DT_REG indică un fișier regulat
             {
-                if (analyze_file_syntax(path)) 
+                if (analyze_file_syntax(path, isolated_dir)) // transmitem directorul izolat ca argument
                 {
                     metadata[*count - 1].dangerous = true; // Marcam fișierele periculoase
                 }
