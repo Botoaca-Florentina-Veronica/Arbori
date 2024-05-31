@@ -27,25 +27,25 @@ având complexitatea O(log n) pentru operațiile de bază, în condiții ideale 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
-#define NUMAR_LOCURI 5
+#define NUM_LOCURI_LIBERE 5
 
-//Structura Student stochează datele esențiale: codul studentului, nota și starea de admitere
 typedef struct {
     int id;
     float nota;
     bool admis;
 } Student;
 
-// Structura pentru un nod al arborelui binar de cautare
+// Structura pentru un nod al arborelui binar de căutare
 typedef struct Nod {
     Student student;
-    struct Nod* stanga;
-    struct Nod* dreapta;
+    struct Nod *stanga;
+    struct Nod *dreapta;
 } Nod;
 
-// Functie pentru a crea un nou nod
-Nod* creeazaNod(int id, float nota) 
+// Funcție pentru crearea unui nod nou
+Nod *creareNod(int id, float nota) 
 {
     Nod* nodNou = (Nod*)malloc(sizeof(Nod));
     nodNou->student.id = id;
@@ -55,142 +55,143 @@ Nod* creeazaNod(int id, float nota)
     return nodNou;
 }
 
-// Functie pentru a insera un nod in BST
-// Complexitate: O(log n) în medie, O(n) în cel mai rău caz
-// Inserarea într-un arbore binar de căutare echilibrat (sau aproape echilibrat) are o complexitate logaritmică
-// În cel mai rău caz (dacă arborele este degenerat și arată ca o listă), complexitatea devine liniară
-Nod *insereazaNod(Nod *radacina, int id, float nota) 
+// Funcție pentru inserarea unui nod în arbore
+Nod *inserareNod(Nod *radacina, int id, float nota) 
 {
-    if (radacina == NULL)
+    if (radacina == NULL) 
     {
-        return creeazaNod(id, nota);
+        return creareNod(id, nota);
     }
-    if (id < radacina->student.id)
+    if (id < radacina->student.id) 
     {
-        radacina->stanga = insereazaNod(radacina->stanga, id, nota);
-    }
-    else if (id > radacina->student.id)
+        radacina->stanga = inserareNod(radacina->stanga, id, nota);
+    } 
+    else if (id > radacina->student.id) 
     {
-        radacina->stanga = insereazaNod(radacina->stanga, id, nota);
+        radacina->dreapta = inserareNod(radacina->dreapta, id, nota);
     }
     return radacina;
 }
 
-// Functie pentru a cauta un nod dupa id
-// Complexitate: O(log n) în medie, O(n) în cel mai rău caz
-Nod *gasesteNod(Nod *radacina, int id) 
+// Funcție pentru căutarea unui nod după id
+Nod *cautareNod(Nod *radacina, int id) 
 {
-    if (radacina == NULL || radacina->student.id == id)
+    if (radacina == NULL || radacina->student.id == id) 
     {
         return radacina;
     }
-    if (id < radacina->student.id)
+    if (id < radacina->student.id) 
     {
-        return gasesteNod(radacina->stanga, id);
+        return cautareNod(radacina->stanga, id);
+    } 
+    else 
+    {
+        return cautareNod(radacina->dreapta, id);
     }
-    return gasesteNod(radacina->dreapta, id);
 }
 
-// Functie pentru a modifica nota unui student
-// Complexitate: O(log n) în medie, O(n) în cel mai rău caz
-// Această funcție se bazează pe gasesteNod pentru a găsi nodul care trebuie modificat
-// Prin urmare, complexitatea este aceeași ca și pentru gasesteNod
-void modificaNota(Nod *radacina, int id, float notaNoua) 
+// Funcție pentru actualizarea notei unui student
+void actualizareNota(Nod *radacina, int id, float notaNoua) 
 {
-    Nod *nod = gasesteNod(radacina, id);
+    Nod *nod = cautareNod(radacina, id);
     if (nod != NULL) 
     {
         nod->student.nota = notaNoua;
     }
 }
 
-// Functie pentru a transmite simultan 8 studenti catre rectorat
-// Complexitate: O(n)
-void transmiteStudentiRectorat(Nod *radacina, int *counter) 
+// Funcție pentru determinarea și marcarea studenților admiși
+void marcheazaAdmisi(Nod *radacina, int *locuriLibere) 
 {
-    if (radacina == NULL || *counter >= 8)
+    if (radacina == NULL || *locuriLibere <= 0) 
     {
         return;
     }
-    transmiteStudentiRectorat(radacina->stanga, counter);
-    if (*counter < 8) 
-    {
-        printf("ID: %d, Nota: %.2f, Admis: %s\n", radacina->student.id, radacina->student.nota, radacina->student.admis ? "Da" : "Nu");
-        (*counter)++;
-    }
-    transmiteStudentiRectorat(radacina->dreapta, counter);
-}
-
-// Functie pentru a marca studentii admisi
-// Complexitate: O(n)
-void marcheazaStudentiAdmisi(Nod* radacina, int* locuriOcupate, int numarLocuri) 
-{
-    if (radacina == NULL)
-    {
-        return;
-    }
-    marcheazaStudentiAdmisi(radacina->stanga, locuriOcupate, numarLocuri);
-    if (radacina->student.nota > 5 && *locuriOcupate < numarLocuri) 
+    marcheazaAdmisi(radacina->stanga, locuriLibere);
+    if (radacina->student.nota > 5.0 && *locuriLibere > 0) 
     {
         radacina->student.admis = true;
-        (*locuriOcupate)++;
-    } 
-    else 
-    {
-        radacina->student.admis = false;
+        (*locuriLibere)--;
     }
-    marcheazaStudentiAdmisi(radacina->dreapta, locuriOcupate, numarLocuri);
+    marcheazaAdmisi(radacina->dreapta, locuriLibere);
 }
 
-// Functie pentru a traversa arborele si a afisa studentii
-//  Complexitate: O(n)
-// Funcția traversează arborele în ordinea in-order și afișează toți studenții 
-// Traversarea arborelui are complexitate liniară
-void afiseazaStudenti(Nod* radacina) 
+// Funcție pentru afișarea informațiilor despre un student
+void afiseazaStudent(Nod *nod) 
 {
-    if (radacina == NULL)
+    if (nod != NULL) 
+    {
+        printf("ID: %d, Nota: %.2f, Admis: %s\n", nod->student.id, nod->student.nota, nod->student.admis ? "Da" : "Nu");
+    }
+}
+
+// Funcție pentru accesarea și transmiterea a câte 8 studenți
+void transmiteStudenti(Nod *radacina, int *counter) 
+{
+    if (radacina == NULL || *counter >= 8) 
     {
         return;
     }
-    afiseazaStudenti(radacina->stanga);
-    printf("ID: %d, Nota: %.2f, Admis: %s\n", radacina->student.id, radacina->student.nota, radacina->student.admis ? "Da" : "Nu");
-    afiseazaStudenti(radacina->dreapta);
+    transmiteStudenti(radacina->stanga, counter);
+    if (*counter < 8) 
+    {
+        afiseazaStudent(radacina);
+        (*counter)++;
+    }
+    transmiteStudenti(radacina->dreapta, counter);
+}
+
+// Funcție pentru eliberarea memoriei arborelui
+void elibereazaArbore(Nod* radacina) 
+{
+    if (radacina == NULL) 
+    {
+        return;
+    }
+    elibereazaArbore(radacina->stanga);
+    elibereazaArbore(radacina->dreapta);
+    free(radacina);
 }
 
 int main(void) 
 {
     Nod* radacina = NULL;
-    radacina = insereazaNod(radacina, 1, 4.5);
-    radacina = insereazaNod(radacina, 2, 6.0);
-    radacina = insereazaNod(radacina, 3, 7.5);
-    radacina = insereazaNod(radacina, 4, 5.5);
-    radacina = insereazaNod(radacina, 5, 8.0);
-    radacina = insereazaNod(radacina, 6, 4.0);
-    radacina = insereazaNod(radacina, 7, 6.5);
-    radacina = insereazaNod(radacina, 8, 7.0);
+    // Introducere studenti
+    radacina = inserareNod(radacina, 10, 4.5);
+    radacina = inserareNod(radacina, 20, 6.0);
+    radacina = inserareNod(radacina, 30, 8.5);
+    radacina = inserareNod(radacina, 40, 3.7);
+    radacina = inserareNod(radacina, 50, 7.2);
+    radacina = inserareNod(radacina, 60, 9.1);
+    radacina = inserareNod(radacina, 70, 5.8);
+    radacina = inserareNod(radacina, 80, 4.2);
+    radacina = inserareNod(radacina, 90, 6.5);
+    radacina = inserareNod(radacina, 100, 7.0);
 
-    // Exemplu de modificare a unei note
-    modificaNota(radacina, 2, 9.0);
+    // Actualizare notă pentru un student
+    actualizareNota(radacina, 10, 5.5);
 
-    // Exemplu de transmitere a studentilor catre rectorat
+    // Marchează studenții admiși
+    int locuriLibere = NUM_LOCURI_LIBERE;
+    marcheazaAdmisi(radacina, &locuriLibere);
+
+    // Transmite primii 8 studenți
     int counter = 0;
-    transmiteStudentiRectorat(radacina, &counter);
+    transmiteStudenti(radacina, &counter);
 
-    // Exemplu de marcare a studentilor admisi
-    int locuriOcupate = 0;
-    marcheazaStudentiAdmisi(radacina, &locuriOcupate, NUMAR_LOCURI);
-
-    // Afisare studenti pentru verificare
-    afiseazaStudenti(radacina);
-
+    // Eliberează memoria
+    elibereazaArbore(radacina);
     return 0;
 }
 
-
 /*
+   Algoritmul de marcare a studenților admiși parcurge arborele în ordine și marchează primii studenți eligibili 
+în funcție de nota lor, până când locurile disponibile sunt epuizate. Dacă un student cu o notă mai mare este procesat 
+după ce toate locurile au fost ocupate, acesta nu va fi marcat ca admis, chiar dacă nota lui este mai mare decât a unui 
+student deja admis.
+
 Complexitatea totală a codului este:
 
 În medie: O(n log n)
 În cel mai rău caz: O(n^2)
-
 */
