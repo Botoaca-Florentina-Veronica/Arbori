@@ -1,3 +1,9 @@
+/*
+  Se da un arbore AVL de studenti in care sunt stocate datele acestuia (marca: char,
+anul nasterii: int, admin/respins: boolean). Sa se stocheze doar studentii admisi
+intr-un arbore regasire si sa se calculeze inaltimea celor 2 arbori.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
