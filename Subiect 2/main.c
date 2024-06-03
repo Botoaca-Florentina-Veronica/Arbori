@@ -61,7 +61,7 @@ nodArboreBinar *conversieArbore(Angajat angajati[], int id)
         return NULL; // caz special: arborele este gol
     }
 
-    // Căutăm angajatul în tablou
+    // intai cautam in tabloul de angajati valoarea id-ului cautat
     Angajat *angajat = NULL;
     for (i = 0; i < MAX; i++) 
     {
@@ -73,12 +73,13 @@ nodArboreBinar *conversieArbore(Angajat angajati[], int id)
         }
     }
 
+   //de abia in urma acestei parcurgeri, vom verifica daca variabila angajatCurent este in continuare nula
     if (angajat == NULL) 
     {
         return NULL; // angajatul nu a fost găsit
     }
 
-    // Creăm nodul corespunzător în arborele binar
+    //ii alocam unui nou nod datele angajatului pe care tocmai l-am gasit ca fiind cel cautat de noi
     nodArboreBinar *nodBinar = creeareNodArboreBinar(angajat->id, angajat->nume);
 
     // Conversia copiilor în subarbori
