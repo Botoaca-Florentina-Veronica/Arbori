@@ -33,7 +33,8 @@ typedef struct nodArboreBinar {
     struct nodArboreBinar *dreapta;
 } nodArboreBinar;
 
-// Funcție pentru crearea unui nod în arborele binar:
+// Funcție pentru crearea unui nod în arborele binar
+// complexitate constantă O(1) deoarece efectuează operații simple de asignare și inițializare
 nodArboreBinar *creeareNodArboreBinar(int id, char *nume) 
 {
     nodArboreBinar *newnode = (nodArboreBinar *)malloc(sizeof(nodArboreBinar));
@@ -49,7 +50,9 @@ nodArboreBinar *creeareNodArboreBinar(int id, char *nume)
     return newnode;
 }
 
-// Funcție recursivă pentru conversia arborelui generalizat în arbore binar:
+// Funcție recursivă pentru conversia arborelui generalizat în arbore binar
+// Complexitate de timp O(n), unde n reprezintă numărul total de angajați
+// Aceasta se datorează faptului că trebuie să iterăm prin toți angajații pentru a construi arborele binar
 nodArboreBinar *conversieArbore(Angajat angajati[], int id) 
 {
     int i;
@@ -94,6 +97,7 @@ nodArboreBinar *conversieArbore(Angajat angajati[], int id)
 }
 
 // Funcție pentru parcurgerea în preordine a arborelui binar
+// Complexitate de timp O(n), deoarece trebuie să parcurgem fiecare nod al arborelui binar exact o dată
 void parcurgerePreordine(nodArboreBinar *radacina) 
 {
     if (radacina == NULL) 
