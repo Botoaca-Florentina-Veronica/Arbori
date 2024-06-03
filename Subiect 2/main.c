@@ -10,55 +10,61 @@ Nota: Este obligatorie comentarea algoritmului si specificarea complexitatii ace
 comentarea si reprezentare grafica a structurilor de date alese, precum si justificarea alegerii acestora
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
 
-#define MAX_COPII 10
+#define MAX 10
 
-// Structură pentru angajat
+// Structura arbore generalizat utilizând tablouri:
 typedef struct Angajat {
     int id;
     char nume[50];
-    int sef_direct_id;
-    int copii[MAX_COPII];
-    int numar_copii;
+    int sef_direct_id; // părintele
+    int copii[MAX]; 
+    int nr_copii;
 } Angajat;
 
-// Structură pentru nodul arborelui binar
-typedef struct NodArboreBinar {
+// Structura arbore binar utilizând liste:
+typedef struct nodArboreBinar {
     int id;
     char nume[50];
-    struct NodArboreBinar* stanga;
-    struct NodArboreBinar* dreapta;
-} NodArboreBinar;
+    struct nodArboreBinar *stanga;
+    struct nodArboreBinar *dreapta;
+} nodArboreBinar;
 
-// Funcție pentru creare nod arbore binar
-NodArboreBinar *creareNodArboreBinar(int id, char *nume) 
+// Funcție pentru crearea unui nod în arborele binar:
+nodArboreBinar *creeareNodArboreBinar(int id, char *nume) 
 {
-    NodArboreBinar *nod = (NodArboreBinar*)malloc(sizeof(NodArboreBinar));
-    nod->id = id;
-    strcpy(nod->nume, nume);
-    nod->stanga = NULL;
-    nod->dreapta = NULL;
-    return nod;
+    nodArboreBinar *newnode = (nodArboreBinar *)malloc(sizeof(nodArboreBinar));
+    if (newnode == NULL) 
+    {
+        printf("Eroare la alocarea memoriei pentru nodul arborelui binar.\n");
+        exit(EXIT_FAILURE);
+    }
+    newnode->id = id;
+    strcpy(newnode->nume, nume);
+    newnode->stanga = NULL;
+    newnode->dreapta = NULL;
+    return newnode;
 }
 
-// Funcție recursivă pentru conversia arborelui generalizat în arbore binar
-NodArboreBinar *conversieArbore(Angajat angajati[], int id) 
+// Funcție recursivă pentru conversia arborelui generalizat în arbore binar:
+nodArboreBinar *conversieArbore(Angajat angajati[], int id) 
 {
     int i;
     if (id == -1) 
     {
-        return NULL;
+        return NULL; // caz special: arborele este gol
     }
 
-    // Găsim angajatul în tablou
+    // Căutăm angajatul în tablou
     Angajat *angajat = NULL;
-    for (i = 0; i < MAX_COPII; i++) 
+    for (i = 0; i < MAX; i++) 
     {
         if (angajati[i].id == id) 
         {
+            //daca am gasit angajatul cu id-ul cautat, vom retine detaliile despre acesta in variabila angajat creeata mai sus
             angajat = &angajati[i];
             break;
         }
@@ -66,31 +72,29 @@ NodArboreBinar *conversieArbore(Angajat angajati[], int id)
 
     if (angajat == NULL) 
     {
-        return NULL;
+        return NULL; // angajatul nu a fost găsit
     }
 
     // Creăm nodul corespunzător în arborele binar
-    NodArboreBinar *nodBinar = creareNodArboreBinar(angajat->id, angajat->nume);
+    nodArboreBinar *nodBinar = creeareNodArboreBinar(angajat->id, angajat->nume);
 
-    // Conversia primului copil în copil stâng
-    if (angajat->numar_copii > 0) 
-    {
+    // Conversia copiilor în subarbori
+    if (angajat->nr_copii > 0)
+     {
         nodBinar->stanga = conversieArbore(angajati, angajat->copii[0]);
-    }
 
-    // Conversia restului copiilor în subarbori drept
-    NodArboreBinar *curent = nodBinar->stanga;
-    for (int i = 1; i < angajat->numar_copii; i++) 
-    {
-        curent->dreapta = conversieArbore(angajati, angajat->copii[i]);
-        curent = curent->dreapta;
+        nodArboreBinar *curr = nodBinar->stanga;
+        for (i = 1; i < angajat->nr_copii; i++) 
+        {
+            curr->dreapta = conversieArbore(angajati, angajat->copii[i]);
+            curr = curr->dreapta;
+        }
     }
-
     return nodBinar;
 }
 
 // Funcție pentru parcurgerea în preordine a arborelui binar
-void parcurgerePreordine(NodArboreBinar* radacina) 
+void parcurgerePreordine(nodArboreBinar *radacina) 
 {
     if (radacina == NULL) 
     {
@@ -101,9 +105,11 @@ void parcurgerePreordine(NodArboreBinar* radacina)
     parcurgerePreordine(radacina->dreapta);
 }
 
-int main() {
+int main(void) 
+{
     // Creare angajați și inițializare arbore generalizat
-     Angajat angajati[10] = {
+    Angajat angajati[MAX] = 
+    {
         {1, "CEO", -1, {2, 5, 4}, 3},    // CEO cu ID 1, 3 copii: Manager1, Employee2, Manager2
         {2, "Manager1", 1, {3}, 1},      // Manager1 cu ID 2, 1 copil: Employee1
         {3, "Employee1", 2, {8}, 1},     // Employee1 cu ID 3, 1 copil: Employee5
@@ -111,15 +117,20 @@ int main() {
         {5, "Employee2", 1, {}, 0},      // Employee2 cu ID 5, fără copii
         {6, "Employee3", 4, {9}, 1},     // Employee3 cu ID 6, 1 copil: Employee6
         {7, "Employee4", 4, {}, 0},      // Employee4 cu ID 7, fără copii
-        {8, "Employee5", 3, {}, 0},      // Employee5 cu ID 8, fara copii
-        {9, "Employee6", 6, {}, 0}       // Employee6 cu ID 9, fara copii
+        {8, "Employee5", 3, {}, 0},      // Employee5 cu ID 8, fără copii
+        {9, "Employee6", 6, {}, 0}       // Employee6 cu ID 9, fără copii
     };
 
     // Conversia arborelui generalizat în arbore binar
-    NodArboreBinar* radacinaBinar = conversieArbore(angajati, 1);
+    nodArboreBinar *radacinaBinar = conversieArbore(angajati, 1);
 
     // Parcurgerea în preordine a arborelui binar rezultat
+    printf("Parcurgerea in preordine a arborelui binar:\n");
     parcurgerePreordine(radacinaBinar);
+
+    // Eliberarea memoriei
+    // TODO: Scrie o funcție de eliberare a memoriei pentru arborele binar
+
     return 0;
 }
 
