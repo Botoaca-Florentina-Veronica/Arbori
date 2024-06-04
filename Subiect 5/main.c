@@ -349,7 +349,8 @@ int main(void)
     int chei[] = {10, 20, 5, 6, 15, 30, 25, 50};
     int n = sizeof(chei) / sizeof(chei[0]);
     
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) 
+    {
         radacinaAVL = adauga(radacinaAVL, chei[i]);
         radacinaB = insereaza(radacinaB, chei[i], NULL);
     }
@@ -367,3 +368,26 @@ int main(void)
     
     return 0;
 }
+
+/*
+   Arbore AVL:
+
+        10
+       /  \
+      5    30
+      \    / \
+       6  20 50
+          / \
+         15  25
+Inaltime:4
+   
+
+   Arbore B:
+         20
+      /     \
+    10       30
+    /  \     / \
+[5,6]  15   25  50
+Inaltime:3
+
+*/
