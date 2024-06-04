@@ -1,10 +1,3 @@
-/*
-  Se dau un arbore AVL si unul B de ordinul n=1, cu aceeasi secventa de chei.
-  Sa se compare inaltimile celor 2 arbori si sa se afiseze diferenta lor raportata la numarul de chei, 
-precum si raportul celor doua inaltimi in mod cat mai eficient.
-
-*/
-
 // C program to insert a node in AVL tree 
 #include<stdio.h> 
 #include<stdlib.h> 
