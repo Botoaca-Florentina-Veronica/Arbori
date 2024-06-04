@@ -3,6 +3,7 @@ si ponderile reprezentand distantele dintre orase
     Sa se scrie un program care determina lungimea minima necesara de teava care trebuie folosita de o companie de apa care conecteaza toate orasele.
 */
 
+//vom folosi algoritmul lui Prim
 #include <stdio.h>
 #include <stdbool.h>
 #include <limits.h>
@@ -10,13 +11,21 @@ si ponderile reprezentand distantele dintre orase
 #define MAX 100
 
 // Funcția pentru a găsi vârful cu valoarea cheie minimă din setul de vârfuri care nu sunt incluse în MST
+// (MST- minimal spanning tree)
 int minKey(int key[], bool mstSet[], int n) 
 {
-    int min = INT_MAX, min_index;
+    int v;
+    int min = INT_MAX;
+    int min_index;
 
-    for (int v = 0; v < n; v++)
+    for (v = 0; v < n; v++)
+    {
         if (mstSet[v] == false && key[v] < min)
-            min = key[v], min_index = v;
+        {
+            min = key[v];
+            min_index = v;
+        }
+    }
 
     return min_index;
 }
@@ -31,7 +40,10 @@ int primMST(int graph[MAX][MAX], int n)
 
     // Inițializăm toate cheile ca INFINIT
     for (i = 0; i < n; i++)
-        key[i] = INT_MAX, mstSet[i] = false;
+    {
+        key[i] = INT_MAX;
+        mstSet[i] = false;
+    }
 
     // Întotdeauna includem primul vârf în MST
     key[0] = 0; // Facem valoarea cheie a acestui vârf 0 pentru a-l alege primul
@@ -53,7 +65,10 @@ int primMST(int graph[MAX][MAX], int n)
             // mstSet[v] este fals pentru vârfurile încă neincluse în MST
             // Actualizați cheia doar dacă graph[u][v] este mai mică decât key[v]
             if (graph[u][v] && mstSet[v] == false && graph[u][v] < key[v])
-                parent[v] = u, key[v] = graph[u][v];
+            {
+                parent[v] = u;
+                key[v] = graph[u][v];
+            }
     }
 
     // Calculăm suma totală a MST-ului
