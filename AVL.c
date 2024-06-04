@@ -24,19 +24,26 @@ int height(Node *N)
 // A utility function to get maximum of two integers 
 int max(int a, int b) 
 { 
-	return (a > b)? a : b; 
+    if (a > b) 
+    {
+        return a;
+    } 
+    else 
+    {
+        return b;
+    }
 } 
 
 /* Helper function that allocates a new node with the given key and 
 	NULL left and right pointers. */
 Node* newNode(int key) 
 { 
-    Node* node = (Node*) malloc(sizeof(Node)); 
-	node->key = key; 
-	node->left = NULL; 
-	node->right = NULL; 
-	node->height = 1; // new node is initially added at leaf 
-	return(node); 
+    Node* newnode = (Node*) malloc(sizeof(Node)); 
+	newnode->key = key; 
+	newnode->left = NULL; 
+	newnode->right = NULL; 
+	newnode->height = 1; // new node is initially added at leaf 
+	return(newnode); 
 } 
 
 // A utility function to right rotate subtree rooted with y 
@@ -118,13 +125,10 @@ Node* insert(Node* node, int key)
 	node->height = 1 + max(height(node->left), 
 						height(node->right)); 
 
-	/* 3. Get the balance factor of this ancestor 
-		node to check whether this node became 
-		unbalanced */
+	// 3. Get the balance factor of this ancestor node to check whether this node became unbalanced 
 	int balance = getBalance(node); 
 
-	// If this node becomes unbalanced, then 
-	// there are 4 cases 
+	// If this node becomes unbalanced, then there are 4 cases:
 
 	// Left Left Case 
 	if (balance > 1 && key < node->left->key) 
@@ -156,15 +160,35 @@ Node* insert(Node* node, int key)
 	return node; 
 } 
 
-// A utility function to print preorder traversal 
-// of the tree. 
-// The function also prints height of every node 
+// preorder traversal
 void preOrder(Node *root) 
 { 
 	if(root != NULL) 
 	{ 
 		printf("%d ", root->key); 
 		preOrder(root->left); 
+		preOrder(root->right); 
+	} 
+} 
+
+// postorder traversal
+void postOrder(Node *root) 
+{ 
+	if(root != NULL) 
+	{ 
+		preOrder(root->left); 
+		preOrder(root->right); 
+        printf("%d ", root->key); 
+	} 
+} 
+
+// inorder traversal
+void inOrder(Node *root) 
+{ 
+	if(root != NULL) 
+	{ 
+		preOrder(root->left); 
+        printf("%d ", root->key); 
 		preOrder(root->right); 
 	} 
 } 
@@ -191,8 +215,14 @@ int main(void)
        10  25    50 
   */
 
-    printf("Preorder traversal of the constructed AVL" " tree is \n"); 
+    printf("\nPreorder traversal of the constructed AVL" " tree is: \n"); 
     preOrder(root); 
+
+    printf("\nPostorder traversal of the constructed AVL" " tree is: \n"); 
+    postOrder(root); 
+
+    printf("\nInorder traversal of the constructed AVL" " tree is: \n"); 
+    inOrder(root); 
 
     return 0; 
 } 
