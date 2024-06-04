@@ -70,19 +70,16 @@ void Adauga(char *x, NodArboreDeRegasire *cuvinte) {
 }
 
 // Funcția pentru calculul înălțimii arborelui de regăsire
-// Funcția pentru calculul înălțimii arborelui de regăsire
-void CalculInaltime(NodArboreDeRegasire *Nod, int *inaltime_max, int nivel) {
-    // Iterăm prin toate caracterele alfabetului
+void CalculInaltime(NodArboreDeRegasire *Nod, int *inaltime_max, int nivel) 
+{
+    bool isLeaf = true;
     for (char c = 'A'; c <= 'Z'; c++) {
-        // Verificăm dacă există un nod pentru caracterul curent
         if (Valoare(Nod, c)) {
-            // Apelăm recursiv funcția pentru subarborele corespunzător caracterului curent
+            isLeaf = false;
             CalculInaltime(Valoare(Nod, c), inaltime_max, nivel + 1);
         }
     }
-    // Verificăm dacă nodul curent reprezintă un cuvânt complet
-    if (Valoare(Nod, '[')) {
-        // Actualizăm înălțimea maximă dacă nivelul curent este mai mare decât înălțimea maximă anterioară
+    if (isLeaf && Valoare(Nod, '[')) {
         if (nivel > *inaltime_max) {
             *inaltime_max = nivel;
         }
@@ -313,16 +310,15 @@ Arbore AVL:
          1995
         /    \
     1993      1996
-   /   \       /
-1992   1994   -
+   /   \       
+1992   1994   
 
 
 Arbore de regasire:
-         A1
-        / \
-      A2   A3
-           /
-         A4
-         /
-       A5
+(root)
+  └─ '199'
+      ├─ '5'
+      ├─ '4'
+      └─ '2'
+
 */
