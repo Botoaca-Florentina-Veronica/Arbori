@@ -19,7 +19,7 @@ typedef struct TNodAVL {
 
 // Structura pentru un student
 typedef struct {
-    char marca[10];
+    char marca[12];
     int anul_nasterii;
     bool admis;
 } Student;
