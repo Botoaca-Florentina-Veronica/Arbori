@@ -26,7 +26,7 @@ typedef struct Graph {
 } Graph;
 
 // Functie pentru initializarea grafului
-Graph* createGraph(int numVertices, int numEdges) 
+Graph *createGraph(int numVertices, int numEdges) 
 {
     Graph *graph = (Graph *) malloc(sizeof(Graph));
     graph->numVertices = numVertices;
@@ -122,7 +122,7 @@ int main(void)
 
     Graph *graph = createGraph(numVertices, numEdges);
 
-    int edges[][3] = 
+    int edges[7][3] = 
     {
         {0, 1, 5},
         {1, 4, 10},
