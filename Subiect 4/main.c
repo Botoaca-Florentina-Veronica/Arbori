@@ -116,8 +116,14 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
     {
         //daca cheia de inserat < cheia curenta,
         //se insereaza in subarborele stang
+
+    /*
+        ech = 0: Nodul este perfect echilibrat.
+        ech = 1: Subarborele drept este cu o unitate mai înalt decât subarborele stâng.
+        ech = -1: Subarborele stâng este cu o unitate mai înalt decât subarborele drept.
+    */
         p->stg = InsertEchilibrat(x, p->stg, h);
-        if (*h == TRUE) //ramura stinga a crescut in inaltime
+        if (*h == TRUE) //ramura stanga a crescut in inaltime
         {
             switch (p->ech)
             {
@@ -131,7 +137,7 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
                 case -1: //subarborele era dezechilibrat in stanga cu un nivel,
                          //acum e cu doua nivele => reechilibrare
                     p1 = p->stg;
-                    if (p1->ech == -1) //cazul 1 stanga, dezechilibru la fiu in stanga
+                    if (p1->ech == -1) //cazul 1 stanga(LL), dezechilibru la fiu in stanga
                     {
                         /*Se efectueaza o rotatie la dreapta a subarborelui p1, astfel:
                            - fiul drept al nodului p1 este "decuplat" de arbore;
@@ -143,7 +149,7 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
                         p->ech = 0;
                         p = p1;
                     }
-                    else // cazul 2 stanga, dezechilibru la fiu in dreapta
+                    else // cazul 2 stanga(LR), dezechilibru la fiu in dreapta
                     {
                         /*Se efectueaza o rotatie la stanga a subarborelui p2, astfel:
                            - fiul stanga al nodului p2 este "decuplat" de arbore;
@@ -173,7 +179,7 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
                             p1->ech = 0;
 
                         p = p2;
-                    } // caz 2 stinga
+                    } // caz 2 stanga
                     p->ech = 0;
                     *h = FALSE; //nu s-a schimbat diferenta de nivel
                     break;
@@ -197,7 +203,7 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
                     case +1: //subarborele era dezechilibrat in dreapta cu un nivel,
                              //acum e cu doua nivele => reechilibrare
                         p1 = p->dr;
-                        if (p1->ech == 1) // cazul 1 dreapta
+                        if (p1->ech == +1) // cazul 1 dreapta(RR)
                         {
                             /*Se efectueaza o rotatie la stanga a subarborelui p1, astfel:
                                - nodul p1->stg este "decuplat" de arbore;
@@ -209,7 +215,7 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
                             p->ech = 0;
                             p = p1;
                         }
-                        else // cazul 2 dreapta
+                        else // cazul 2 dreapta(RL)
                         {
                             /*Se efectueaza o rotatie la dreapta a subarborelui p2, astfel:
                                - nodul p2->dr este "decuplat" de arbore;
