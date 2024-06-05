@@ -52,11 +52,11 @@ int primMST(int graph[MAX][MAX], int n)
     // MST-ul va avea n vârfuri
     for (int count = 0; count < n - 1; count++) 
     {
-        // Alegeți vârful cu valoarea cheie minimă din setul de vârfuri încă neprocesate
         u = minKey(key, mstSet, n);
-
-        // Adăugați vârful ales la setul MST
         mstSet[u] = true;
+        //inca nu am pus drumul gasit in u in graful minim de acoperire, doar am cautat si gasit cel mai scurt drum(indexul din matricea de adiacenta)
+        // si l-am retinut in u
+        //urmeaza sa introduc acest drum in arborele minim aici:
 
         // Actualizați valoarea cheii și indexul părintelui vârfurilor adiacente vârfului ales
         for (v = 0; v < n; v++)
