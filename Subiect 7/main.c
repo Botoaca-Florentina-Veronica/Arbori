@@ -91,7 +91,7 @@ void primMST(Graph *graph, int n)
     for (int count = 0; count < n - 1; count++) 
     {
       //aici practic caut si gasesc ponderea minima de pe muchiile din graf
-      //u este un nod, dar in el stocam indexul valorii minime al ponderii de pe muchiile din graf
+      //u este un nod sursa, dar in el stocam indexul valorii minime al ponderii de pe muchiile din graf
       //adica nu stocam in el chiar valoarea ponderii, ci un 'indiciu'(indexul) ca din acest nod porneste o muchie cu pondere minima
         u = minKey(key, mstSet, n);
         mstSet[u] = true;
