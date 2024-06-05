@@ -89,14 +89,20 @@ void primMST(Graph *graph)
 
     for (int count = 0; count < numVertices - 1; count++) 
     {
+      //aici practic caut si gasesc ponderea minima de pe muchiile din graf
         u = minKey(key, mstSet, numVertices);
         mstSet[u] = true;
 
+      //introducem in noul arbore de acoperire minima muchia minima recent gasita si stocata in u
         for (v = 0; v < numVertices; v++) 
         {
             for (e = 0; e < graph->numEdges; e++) 
             {
+                //creez o variabila edge pentru a pastra si lucra cu indexul e mai usor
                 Edge edge = graph->edges[e];
+                //daca exista muchie intre unul din nodurile din arborele de acoperire 
+                //care sa nu fie deja inclusa in acesta
+                //si sa aiba ponderea mai mica decat cea gasita anterior
                 if (edge.source == u && !mstSet[edge.destination] && edge.weight < key[edge.destination]) 
                 {
                     parent[edge.destination] = u;
