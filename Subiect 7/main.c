@@ -91,7 +91,7 @@ void primMST(Graph *graph, int n)
     for (int count = 0; count < n - 1; count++) 
     {
       //aici practic caut si gasesc ponderea minima de pe muchiile din graf
-      //u este un nod, dar in el stocam indexul valorii minime ce se afla in ponderile muchiilor din graf
+      //u este un nod, dar in el stocam indexul valorii minime al ponderii de pe muchiile din graf
       //adica nu stocam in el chiar valoarea ponderii, ci un 'indiciu'(indexul) ca din acest nod porneste o muchie cu pondere minima
         u = minKey(key, mstSet, n);
         mstSet[u] = true;
@@ -104,9 +104,12 @@ void primMST(Graph *graph, int n)
                 //creez o variabila edge pentru a pastra si lucra cu indexul e mai usor
                 Edge edge = graph->edges[e];
                 if (edge.source == u && mstSet[edge.destination]==false && edge.weight < key[edge.destination]) 
-                // edge.source == u: Verifică dacă nodul u este sursa muchiei edge. Adică, nodul u este deja inclus în MST
-                // !mstSet[edge.destination]: Verifică dacă destinația muchiei edge nu este încă în MST
-                // edge.weight < key[edge.destination]: Verifică dacă greutatea muchiei edge este mai mică decât greutatea curentă stocată în key pentru nodul de destinație
+                // edge.source == u: Verifica daca nodul din care incepe muchia cu ponderea minima este acelasi cu nodul(cu aceeasi muchie) 
+                // din graful dat ca parametru pe care eu il parcurg
+
+                // mstSet[edge.destination]==false: Verifică dacă destinația muchiei edge nu este încă în MST
+                // edge.weight < key[edge.destination]: Verifică dacă greutatea muchiei edge este mai mică decât greutatea 
+                // curentă stocată în key pentru nodul de destinație
                 {
                     parent[edge.destination] = u;
                     key[edge.destination] = edge.weight;
@@ -171,8 +174,7 @@ greutate mai mică decât valoarea curentă din key.
 
    Al doilea pas:
 Acum, căutăm nodul cu cea mai mică valoare în key care nu este încă în mstSet.
-Să zicem că key[1] = 2, key[2] = 3, key[3] = 1, și key[4] = ∞.
-u va fi nodul 3 deoarece key[3] are cea mai mică valoare.
+Să zicem că key[1] = 2, key[2] = 3, key[3] = 1, și key[4] = ∞, u va fi nodul 3 deoarece key[3] are cea mai mică valoare.
 Adăugăm nodul 3 în mstSet și actualizăm key și parent pentru vecinii lui 3.
 
    Continuăm până la completarea MST:
