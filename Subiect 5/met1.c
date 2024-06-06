@@ -43,7 +43,8 @@ TNodAVL* insertEchilibrat(TCheie x, TNodAVL *p, int *h)
         //daca cheia de inserat < cheia curenta,
         //se insereaza in subarborele stang
         p->stg = insertEchilibrat(x, p->stg, h);
-        if (*h == TRUE) //ramura stinga a crescut in inaltime
+        if (*h == TRUE) 
+	//daca inaltimea e true inseamna ca aceasta s-a schimbat, iar ea nu poate decat sa creasca
         {
             switch (p->ech)
             {
