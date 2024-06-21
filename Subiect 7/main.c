@@ -49,7 +49,10 @@ void addEdge(Graph *graph, int edgeIndex, int source, int destination, int weigh
 int minKey(int key[], bool mstSet[], int numVertices) 
 {
     int v;
-    int min = INT_MAX, min_index;
+    int min = INT_MAX; // vom folosi variabila min pentru a pastra in ea valoarea minima pe care o cautam
+    // ea va fi initializata cu o valoarea 'infinita', simbolica, care subliniaza ca nu se afla in aria noastra de cautare
+    int minIndex; // indexul valorii minime
+  
     for (v = 0; v < numVertices; v++) 
     {
         if (mstSet[v] == false && key[v] < min) 
