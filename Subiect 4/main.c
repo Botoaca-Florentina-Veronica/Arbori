@@ -108,7 +108,7 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
         p->cheie = x;
         p->ech = 0; //nodul nou inserat creaza un subarbore unitar, care este mereu echilibrat
         p->stg = p->dr = NULL; //noul nod este frunza
-        *h = TRUE;
+        *h = TRUE; // prin inserarea noului nod intr-un arbore gol, am modificat implicit si inaltimea
         return p;
     }
 
@@ -118,14 +118,16 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
         //se insereaza in subarborele stang
 
     /*
-        ech = 0: Nodul este perfect echilibrat.
+        ech = 0: Arorele este perfect echilibrat.
         ech = 1: Subarborele drept este cu o unitate mai înalt decât subarborele stâng.
         ech = -1: Subarborele stâng este cu o unitate mai înalt decât subarborele drept.
     */
         p->stg = InsertEchilibrat(x, p->stg, h);
         if (*h == TRUE) //ramura stanga a crescut in inaltime
         {
-            switch (p->ech)
+          // adica daca inaltimea in urma inserarii cheii s-a schimbat (*h==true)
+          // vom recurge la urmatoarele situatii:
+            switch (p->ech) // vom schimba 'gradul' specific echilibrarii arborelui
             {
                 case 1:          //subarborele era dezechilibrat in dreapta
                     p->ech = 0;  //adaugare in subarborele stang => echilibru
