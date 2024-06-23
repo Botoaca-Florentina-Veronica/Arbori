@@ -133,14 +133,30 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
                     p->ech = 0;  //adaugare in subarborele stang => echilibru
                     *h = FALSE;
                     break;
-                case 0:          //subarborele era in echilibru
-                    p->ech = -1; //dezechilibrat cu un nivel in stanga
+                case 0:  
+                // in acest caz, arborele nostru era perfect echilibrat, insa
+                // in urma inserarii in partea stanga a noului nod am provocat dezechilibru
+                // cu o unitate, dar in continuare, nu e nevoie de alte interventii pt reechilibrare,
+                // fiindca arborele este intr-o stare optima(nu puteam insera nodul intr-un loc mai bun)
+                    p->ech = -1; 
+                // nu mai e nevoie sa scriu *h=TRUE, fiindca eu asa l-am initializat
+                // il schimb doar daca nu exista schimbari de inaltime
                     break;
-                case -1: //subarborele era dezechilibrat in stanga cu un nivel,
-                         //acum e cu doua nivele => reechilibrare
+                case -1: 
+                // ei bine, aici deja subarborele stang era dezechilibrat cu o unitate,
+                // iar prin inserarea noului nod in stanga, dezechilibram arborele cu 2 unitati pe
+                // aceasta parte, deci e necesară obligatoriu o reechilibrare!  
                     p1 = p->stg;
                     if (p1->ech == -1) //cazul 1 stanga(LL), dezechilibru la fiu in stanga
                     {
+
+                    // ne aflăm într-un dezechilibru cu 2 unități, prima unitate nu deranjează(ca și în cazul -1 
+                    // de mai sus ce nu necesită reechilibrare)
+                    // noi ne ghidăm după ce-a de a doua, deci vom avea cazul în care nodul care provoacă
+                    // dezechilibrul este frunza fie in dreapa fie in stanga subarborelui stang deja dezechilibrat
+                    // acesta este cazul 1 stanga(LL), dezechilibru la fiu in stanga
+
+                      
                         /*Se efectueaza o rotatie la dreapta a subarborelui p1, astfel:
                            - fiul drept al nodului p1 este "decuplat" de arbore;
                            - nodul p devine fiul drept al nodului p1;
@@ -170,6 +186,7 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
                         p->stg = p2->dr;
                         p2->dr = p;
 
+                      // acum recalculam gradele pentru evaluarea echilibrului arborelui
                         if (p2->ech == -1)
                             p->ech = +1;
                         else
@@ -182,7 +199,7 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
 
                         p = p2;
                     } // caz 2 stanga
-                    p->ech = 0;
+                    p->ech = 0;  // în urma pașilor de mai sus am reechilibrat arborele
                     *h = FALSE; //nu s-a schimbat diferenta de nivel
                     break;
             }// switch
