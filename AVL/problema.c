@@ -34,36 +34,46 @@ typedef struct NodArboreDeRegasire {
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 // Funcția pentru inițializarea unui nod din arborele de regăsire
-void Initializare(NodArboreDeRegasire *Nod) {
+void Initializare(NodArboreDeRegasire *Nod) 
+{
     char c;
     for (c = 'A'; c <= '['; c++)
+    {
         Nod->alfabet[c - 'A'] = NULL;
+    }
 }
 
 // Funcția pentru atribuirea unui nod din arborele de regăsire
-void Atribuie(NodArboreDeRegasire *Nod, char c, NodArboreDeRegasire *p) {
+void Atribuie(NodArboreDeRegasire *Nod, char c, NodArboreDeRegasire *p) 
+{
     Nod->alfabet[c - 'A'] = p;
 }
 
 // Funcția pentru obținerea valorii unui nod din arborele de regăsire
-NodArboreDeRegasire *Valoare(NodArboreDeRegasire *Nod, char c) {
+NodArboreDeRegasire *Valoare(NodArboreDeRegasire *Nod, char c) 
+{
     return Nod->alfabet[c - 'A'];
 }
 
 // Funcția pentru crearea unui nod nou în arborele de regăsire
-void NodNou(NodArboreDeRegasire *Nod, char c) {
+void NodNou(NodArboreDeRegasire *Nod, char c) 
+{
     Nod->alfabet[c - 'A'] = (NodArboreDeRegasire *)malloc(sizeof(NodArboreDeRegasire));
     Initializare(Nod->alfabet[c - 'A']);
 }
 
 // Funcția pentru adăugarea unui cuvânt în arborele de regăsire
-void Adauga(char *x, NodArboreDeRegasire *cuvinte) {
+void Adauga(char *x, NodArboreDeRegasire *cuvinte) 
+{
     unsigned i;
     NodArboreDeRegasire *t;
     t = cuvinte;
-    for (i = 0; i < strlen(x); i++) {
+    for (i = 0; i < strlen(x); i++) 
+    {
         if (Valoare(t, x[i]) == NULL)
+        {
             NodNou(t, x[i]);
+        }
         t = Valoare(t, x[i]);
     }
     Atribuie(t, '[', t);
@@ -73,14 +83,18 @@ void Adauga(char *x, NodArboreDeRegasire *cuvinte) {
 void CalculInaltime(NodArboreDeRegasire *Nod, int *inaltime_max, int nivel) 
 {
     bool isLeaf = true;
-    for (char c = 'A'; c <= 'Z'; c++) {
-        if (Valoare(Nod, c)) {
+    for (char c = 'A'; c <= 'Z'; c++) 
+    {
+        if (Valoare(Nod, c)) 
+        {
             isLeaf = false;
             CalculInaltime(Valoare(Nod, c), inaltime_max, nivel + 1);
         }
     }
-    if (isLeaf && Valoare(Nod, '[')) {
-        if (nivel > *inaltime_max) {
+    if (isLeaf && Valoare(Nod, '[')) 
+    {
+        if (nivel > *inaltime_max) 
+        {
             *inaltime_max = nivel;
         }
     }
@@ -89,9 +103,12 @@ void CalculInaltime(NodArboreDeRegasire *Nod, int *inaltime_max, int nivel)
 
 
 // Funcția pentru a distruge un arbore AVL
-void DistrugeAVL(TNodAVL *r) {
+void DistrugeAVL(TNodAVL *r) 
+{
     if(!r)
+    {
         return;
+    }
     DistrugeAVL(r->stg);
     DistrugeAVL(r->dr);
     free(r);
@@ -102,66 +119,34 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
 {
     TNodAVL *p1, *p2;
 
-    if(!p) //cheia nu e in arbore; se insereaza
+    if(!p) 
     {
         p = malloc(sizeof(TNodAVL));
         p->cheie = x;
-        p->ech = 0; //nodul nou inserat creaza un subarbore unitar, care este mereu echilibrat
-        p->stg = p->dr = NULL; //noul nod este frunza
-        *h = TRUE; // prin inserarea noului nod intr-un arbore gol, am modificat implicit si inaltimea
+        p->ech = 0;
+        p->stg = p->dr = NULL; 
+        *h = TRUE; 
         return p;
     }
 
     if (x < p->cheie)
     {
-        //daca cheia de inserat < cheia curenta,
-        //se insereaza in subarborele stang
-
-    /*
-        ech = 0: Arorele este perfect echilibrat.
-        ech = 1: Subarborele drept este cu o unitate mai înalt decât subarborele stâng.
-        ech = -1: Subarborele stâng este cu o unitate mai înalt decât subarborele drept.
-    */
         p->stg = InsertEchilibrat(x, p->stg, h);
-        if (*h == TRUE) //ramura stanga a crescut in inaltime
+        if (*h == TRUE) 
         {
-          // adica daca inaltimea in urma inserarii cheii s-a schimbat (*h==true)
-          // vom recurge la urmatoarele situatii:
-            switch (p->ech) // vom schimba 'gradul' specific echilibrarii arborelui
+            switch (p->ech) 
             {
-                case 1:          //subarborele era dezechilibrat in dreapta
-                    p->ech = 0;  //adaugare in subarborele stang => echilibru
+                case 1:         
+                    p->ech = 0; 
                     *h = FALSE;
                     break;
                 case 0:  
-                // in acest caz, arborele nostru era perfect echilibrat, insa
-                // in urma inserarii in partea stanga a noului nod am provocat dezechilibru
-                // cu o unitate, dar in continuare, nu e nevoie de alte interventii pt reechilibrare,
-                // fiindca arborele este intr-o stare optima(nu puteam insera nodul intr-un loc mai bun)
                     p->ech = -1; 
-                // nu mai e nevoie sa scriu *h=TRUE, fiindca eu asa l-am initializat
-                // il schimb doar daca nu exista schimbari de inaltime
                     break;
                 case -1: 
-                // ei bine, aici deja subarborele stang era dezechilibrat cu o unitate,
-                // iar prin inserarea noului nod in stanga, dezechilibram arborele cu 2 unitati pe
-                // aceasta parte, deci e necesară obligatoriu o reechilibrare!  
                     p1 = p->stg;
                     if (p1->ech == -1) //cazul 1 stanga(LL), dezechilibru la fiu in stanga
                     {
-
-                    // ne aflăm într-un dezechilibru cu 2 unități, prima unitate nu deranjează(ca și în cazul -1 
-                    // de mai sus ce nu necesită reechilibrare)
-                    // noi ne ghidăm după ce-a de a doua, deci vom avea cazul în care nodul care provoacă
-                    // dezechilibrul este frunza fie in dreapa fie in stanga subarborelui stang deja dezechilibrat
-                    // acesta este cazul 1 stanga(LL), dezechilibru la fiu in stanga
-
-                      
-                        /*Se efectueaza o rotatie la dreapta a subarborelui p1, astfel:
-                           - fiul drept al nodului p1 este "decuplat" de arbore;
-                           - nodul p devine fiul drept al nodului p1;
-                           - nodul "decuplat" devine fiul stang al nodului p.
-                        */
                         p->stg = p1->dr;
                         p1->dr = p;
                         p->ech = 0;
@@ -169,24 +154,12 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
                     }
                     else // cazul 2 stanga(LR), dezechilibru la fiu in dreapta
                     {
-                        /*Se efectueaza o rotatie la stanga a subarborelui p2, astfel:
-                           - fiul stanga al nodului p2 este "decuplat" de arbore;
-                           - nodul p2->stg devine fiul drept al nodului p1;
-                           - nodul p1 devine fiul stang al nodului "decuplat";
-                           - nodul "decuplat" p2 devine fiul stang al nodului p.
-
-                           Se efectueaza o rotatie la dreapta a subarborelui p2, astfel:
-                           - fiul stanga al nodului p (p2) este "decuplat" de arbore;
-                           - nodul p2->dr devine fiul stang al nodului p;
-                           - nodul p devine fiul drept al nodului "decuplat" p2.
-                        */
                         p2 = p1->dr;
                         p1->dr = p2->stg;
                         p2->stg = p1;
                         p->stg = p2->dr;
                         p2->dr = p;
 
-                      // acum recalculam gradele pentru evaluarea echilibrului arborelui
                         if (p2->ech == -1)
                             p->ech = +1;
                         else
@@ -199,8 +172,8 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
 
                         p = p2;
                     } // caz 2 stanga
-                    p->ech = 0;  // în urma pașilor de mai sus am reechilibrat arborele
-                    *h = FALSE; //nu s-a schimbat diferenta de nivel
+                    p->ech = 0; 
+                    *h = FALSE; 
                     break;
             }// switch
         }
@@ -209,26 +182,20 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
         if (x > p->cheie)
         {
             p->dr = InsertEchilibrat(x, (TNodAVL *)p->dr, h);
-            if (*h) //ramura dreapta a crescut in inaltime
+            if (*h) 
                 switch (p->ech)
                 {
-                    case -1:        //subarborele era dezechilibrat in stanga
-                        p->ech = 0; //adaugare in subarborele drept => echilibru
+                    case -1:      
+                        p->ech = 0; 
                         *h = FALSE;
                         break;
-                    case 0:          //subarborele era in echilibru
-                        p->ech = +1; //dezechilibrat cu un nivel in stanga
+                    case 0:          
+                        p->ech = +1; 
                         break;
-                    case +1: //subarborele era dezechilibrat in dreapta cu un nivel,
-                             //acum e cu doua nivele => reechilibrare
+                    case +1: 
                         p1 = p->dr;
                         if (p1->ech == +1) // cazul 1 dreapta(RR)
                         {
-                            /*Se efectueaza o rotatie la stanga a subarborelui p1, astfel:
-                               - nodul p1->stg este "decuplat" de arbore;
-                               - nodul p devine fiul stang al nodului p1;
-                               - nodul "decuplat" devine fiul drept al nodului p.
-                            */
                             p->dr = p1->stg;
                             p1->stg = p;
                             p->ech = 0;
@@ -236,17 +203,6 @@ TNodAVL* InsertEchilibrat(int x, TNodAVL *p, int *h)
                         }
                         else // cazul 2 dreapta(RL)
                         {
-                            /*Se efectueaza o rotatie la dreapta a subarborelui p2, astfel:
-                               - nodul p2->dr este "decuplat" de arbore;
-                               - nodul p1 devine fiul drept al nodului p2;
-                               - nodul p2 devine fiul drept al nodului p
-                               - nodul "decuplat" devine fiul stang al nodului p1.
-
-                              Se efectueaza o rotatie la stanga a subarborelui p2, astfel:
-                               - nodul p2->stg este "decuplat" de arbore;
-                               - nodul p devine fiul stang al nodului p2;
-                               - nodul "decuplat" devine fiul drept al nodului p.
-                            */
                             p2 = p1->stg;
                             p1->stg = p2->dr;
                             p2->dr = p1;
