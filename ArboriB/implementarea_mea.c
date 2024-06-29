@@ -1,172 +1,200 @@
+// arbore AVL
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <stdbool.h>
 
-#define M 4 // Maximum degree of the B-tree
+#define N 4 // gradul arborelui B
 
-typedef struct BTreeNode
+/*  TEORIE ARBORI B
+ nr max chei = 2N
+ nr min chei = N
+ nr max fii = 2N+1
+ nr min fii = N+1
+*/
+
+// cand spun fiu sau copil ma refer la același lucru!!
+
+typedef struct pagina
 {
-    int num_keys;           // Number of keys currently in the node
-    int keys[M - 1];        // Array of keys
-    BTreeNode *children[M]; // Array of child pointers
-    bool is_leaf;           // True if node is a leaf
-} BTreeNode;
+    int nr_chei;     // numarul curent de chei aflate in pagina
+    int chei[N - 1]; // vector de chei(aici îmi rețin cheile)
+    bool frunza;     // adică pagina terminală
+    pagina *fii[N];  // vector de pointeri ai fiilor
+} pagina;
 
-// Function to create a new node
-BTreeNode *createNode(bool is_leaf)
+// functie pentru creearea unei pagini noi
+pagina *creearePagina(bool frunza)
 {
     int i;
-    BTreeNode *newNode = (BTreeNode *)malloc(sizeof(BTreeNode));
-    if (newNode == NULL)
+    pagina *paginaNoua;
+    paginaNoua = (pagina *)malloc(sizeof(pagina));
+    if (paginaNoua == NULL)
     {
-        perror("Memory allocation failed");
+        perror("Eroare la alocarea dinamica!");
         exit(EXIT_FAILURE);
     }
-    newNode->num_keys = 0;
-    newNode->is_leaf = is_leaf;
-    for (i = 0; i < M; i++)
+
+    paginaNoua->nr_chei = 0; // la creearea noii pagini nu am elemente
+    paginaNoua->frunza = frunza;
+
+    for (i = 0; i < N; i++)
     {
-        newNode->children[i] = NULL;
+        // fiind un array de pointeri, vom initializa elementele cu NULL
+        paginaNoua->fii[i] = NULL;
     }
-    return newNode;
+
+    return paginaNoua;
 }
 
 // Function to split a full child node
-void splitChild(BTreeNode *parent, int index)
+void scindarePagina(pagina *parent, int index)
 {
-    BTreeNode *child = parent->children[index];
-    BTreeNode *newNode = createNode(child->is_leaf);
+    pagina *fiu = parent->fii[index];                // Aici, fiu este pagina copil plină care va fi împărțită
+    pagina *paginaNoua = creearePagina(fiu->frunza); // paginaNoua este noua pagină creată pentru a primi a doua jumătate din cheile și copiii paginii fiu
 
-    newNode->num_keys = M / 2 - 1;
+    // De ce creez doar o variabilă care să conțină a doua jumătate din cheile din pagina parinte? Ce fac cu cele aflate în prima jumătate? ei bine, nu pot arunca fosta
+    //  pagina părinte care conținea ambele pagini de dinaintea scindării, ar fi o risipă
+    // Așa că o voi 'recicla', și deci noul ei scop va fi acum să conțină valorile mai mici decât cheia, aflate în prima jumătate
+
+    paginaNoua->nr_chei = N / 2 - 1;
 
     int i;
-    // Move keys and children to the new node
-    for (i = 0; i < M / 2 - 1; i++)
+    // Mutarea cheilor și fiilor în noua pagină:
+    for (i = 0; i < N / 2 - 1; i++)
     {
-        newNode->keys[i] = child->keys[i + M / 2];
+        paginaNoua->chei[i] = fiu->chei[i + N / 2];
     }
 
-    if (!child->is_leaf)
+    if (!fiu->frunza)
     {
-        for (i = 0; i < M / 2; i++)
+        for (i = 0; i < N / 2; i++)
         {
-            newNode->children[i] = child->children[i + M / 2];
+            paginaNoua->fii[i] = fiu->fii[i + N / 2];
         }
     }
 
-    child->num_keys = M / 2 - 1;
+    fiu->nr_chei = N / 2 - 1; // aici actualizăm numarul de chei
+    // au rămas doar cheile mai mici decât mediana care urcă la părinte
 
-    // Shift parent's children to make space for the new node
-    for (i = parent->num_keys; i > index; i--)
+    // Deplasăm fii paginii părinte pentru a face loc noii pagini
+    for (i = parent->nr_chei; i > index; i--)
     {
-        parent->children[i + 1] = parent->children[i];
+        parent->fii[i + 1] = parent->fii[i];
     }
 
-    parent->children[index + 1] = newNode;
+    parent->fii[index + 1] = paginaNoua; // inserăm noua pagină în locul corespunzător
 
-    // Shift parent's keys to insert the middle key from the child
-    for (i = parent->num_keys - 1; i >= index; i--)
+    // Deplasăm cheile paginii părinte pentru a insera cheia mediană din fiu
+    for (i = parent->nr_chei - 1; i >= index; i--)
     {
-        parent->keys[i + 1] = parent->keys[i];
+        parent->chei[i + 1] = parent->chei[i];
     }
 
-    parent->keys[index] = child->keys[M / 2 - 1];
-    parent->num_keys++;
+    parent->chei[index] = fiu->chei[N / 2 - 1];
+    parent->nr_chei++;
 }
 
 // Function to insert a key into a non-full node
-void insertNonFull(BTreeNode *node, int key)
+void inserarePaginaNeplină(pagina *pagina, int key)
 {
     int i;
-    i = node->num_keys - 1; // asignăm lui i, indexul ultimei chei din nod, și o vom folosi pentru a itera înapoi prin chei
+    i = pagina->nr_chei - 1; // asignăm lui i indexul ultimei chei din pagina, și o vom folosi pentru a itera înapoi prin chei
     // De ce iterăm înapoi? Păi, vreau să trec doar prin valorile mai mari decât cheia mea, pentru ca mai apoi să
     // le shiftez, și să îmi introduc elementul în pagina. Nu are rost sa parcurg crescător ca să trec prin toate elementele
     // mai mici decât ce am eu nevoie
 
-    if (node->is_leaf) // testăm dacă ne aflăm într-o pagină terminală
+    if (pagina->frunza) // Dacă pagina curentă este o frunză, introducem direct cheia în aceasta
     {
         // Insert key into the sorted order
-        while (i >= 0 && node->keys[i] > key)
+        while (i >= 0 && pagina->chei[i] > key)
         {
-            // aici parcurgem cheile din nod până ajungem la cea mai mare
+            // aici parcurgem de la (dreapta spre stânga) cheile din pagină până ajungem la cea mai mare
             // cand o găsim, vom shifta interativ spre dreapta(cu un index/unitate) acest element si cele ce se afla dupa el
             // fiindca știm că daca pagina nu e plină, mai există cel puțin un loc gol în ea
-            node->keys[i + 1] = node->keys[i];
+            pagina->chei[i + 1] = pagina->chei[i];
             // elementul din față va deveni cel curent
             i--; // Decrementăm i pentru a continua compararea cu cheia următoare
         }
-        node->keys[i + 1] = key; // reținem în locul pe care doar ce l-am eliberat, valoarea noastră
-        node->num_keys++;        // incrementăm numărul de chei din pagină
+        pagina->chei[i + 1] = key; // reținem în locul pe care doar ce l-am eliberat, valoarea noastră
+        pagina->nr_chei++;         // incrementăm numărul de chei din pagină
     }
-    else
+    else // dacă nu ne aflăm într-o pagină terminală, înseamnă că trebuie să parcurg întreg arborele B, de sus în jos, până aflu pagina unde trebuie inserată cheia
     {
-        // Găsim copilul în care să inserăm cheia
-        while (i >= 0 && node->keys[i] > key)
+        while (i >= 0 && pagina->chei[i] > key)
         {
             i--;
         }
-        i++;
+        i++; // am gasit indexul paginii fiu la care vreau să cobor pentru a insera cheia(fiindcă știu sigur că pagina are fii, nefiind pagină terminală-frunză )
 
-        if (node->children[i]->num_keys == M - 1)
+        // cu indexul găsit anterior, verific dacă pagina fiu e plină:
+        if (pagina->fii[i]->nr_chei == N - 1)
         {
-            // Split child if it's full
-            splitChild(node, i);
+            // Dacă pagina copil este plină, trebuie să o împărțim înainte de a insera cheia
+            scindarePagina(pagina, i);
 
-            // Determine which of the two children is the new one
-            if (node->keys[i] < key)
+            // După împărțire, cheia mediană se ridică în pagina părinte(adică pagina de la care am aflat indexul în while-ul de mai sus),
+            // iar pagina copil se împarte în două pagini mai mici
+            // Trebuie să verificăm dacă cheia pe care dorim să o inserăm se află în pagina din stânga sau din dreapta medianei
+            // pentru a continua inserarea în nodul corespunzător
+            if (pagina->chei[i] < key)
             {
+                // dacă cheia din pagina la care ma aflu cu parcurgerea, e mai mică decât cea pe care vreau sa o inserez, trebuie să merg în pagina fiu din dreapta, deci îl incrementez pe i
+                // și parcurg arborele până ajung la pagina corectă
                 i++;
             }
         }
-        insertNonFull(node->children[i], key);
+        inserarePaginaNeplină(pagina->fii[i], key);
+        // În final, apelăm recursiv funcția pentru pagina copil corespunzătoare, pentru a continua procesul de inserare
     }
 }
 
 // Function to insert a key into the B-tree
-void insert(BTreeNode **root, int key)
+void insert(pagina **root, int key)
 {
-    BTreeNode *node = *root;
+    pagina *node = *root;
 
     if (node == NULL)
     {
         // Create a new root node
-        *root = createNode(true);
-        (*root)->keys[0] = key;
-        (*root)->num_keys = 1;
+        *root = creearePagina(true);
+        (*root)->chei[0] = key;
+        (*root)->nr_chei = 1;
     }
     else
     {
-        if (node->num_keys == M - 1)
+        if (node->nr_chei == N - 1)
         {
-            // Split the root if it's full
-            BTreeNode *new_root = createNode(false);
-            new_root->children[0] = node;
-            splitChild(new_root, 0);
+            // scindăm pagina fiindca e plină
+            pagina *new_root = creearePagina(false);
+            new_root->fii[0] = node;
+            scindarePagina(new_root, 0);
             *root = new_root;
         }
-        insertNonFull(*root, key);
+        inserarePaginaNeplină(*root, key);
     }
 }
 
 // Function to traverse and print the B-tree in-order
-void traverse(BTreeNode *root)
+void traverse(pagina *root)
 {
     int i;
     if (root != NULL)
     {
-        for (i = 0; i < root->num_keys; i++)
+        for (i = 0; i < root->nr_chei; i++)
         {
-            traverse(root->children[i]);
-            printf("%d ", root->keys[i]);
+            traverse(root->fii[i]);
+            printf("%d ", root->chei[i]);
         }
-        traverse(root->children[i]);
+        traverse(root->fii[i]);
     }
 }
 
 // Main function to test B-tree implementation
 int main(void)
 {
-    BTreeNode *root = NULL;
+    pagina *root = NULL;
 
     insert(&root, 10);
     insert(&root, 20);
