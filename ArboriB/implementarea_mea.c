@@ -120,7 +120,7 @@ void inserarePaginaNeplină(pagina *pagina, int key)
         pagina->chei[i + 1] = key; // reținem în locul pe care doar ce l-am eliberat, valoarea noastră
         pagina->nr_chei++;         // incrementăm numărul de chei din pagină
     }
-    else // dacă nu ne aflăm într-o pagină terminală, înseamnă că trebuie să parcurg întreg arborele B, de sus în jos, până aflu pagina unde trebuie inserată cheia
+    else // dacă nu ne aflăm într-o pagină terminală, înseamnă că trebuie să parcurg întreg arborele B, de jos în sus, până aflu pagina unde trebuie inserată cheia
     {
         while (i >= 0 && pagina->chei[i] > key)
         {
