@@ -67,6 +67,7 @@ void scindarePagina(pagina *parent, int index)
         paginaNoua->chei[i] = fiu->chei[i + N / 2];
     }
 
+    //cat timp pagina nu e frunză, înseamnă că am și fii pe care trebuie sa îi mut în pagina nouă
     if (!fiu->frunza)
     {
         for (i = 0; i < N / 2; i++)
