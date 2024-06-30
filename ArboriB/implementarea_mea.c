@@ -95,8 +95,8 @@ void scindarePagina(pagina *parent, int index)
     parent->fii[index + 1] = paginaNoua; // inserăm noua pagină ce conține valoarea/valorile mai mari decât
     //pagina cu cheia mediana, în locul corespunzător
  
-    //ATENȚIE, valorile mai mari sunt raportate la cheia mediana, nu e neapărat nevoie ca valorile mai mari sa se afle la final
-    //de aceea ma raportez la index, acolo știu ca are loc scindarea, deci in locul cel mai din dreapta al indexului îmi voi insera noua pagină
+    //ATENȚIE, chiar daca valorile mai mari se află la final
+    //eu mă raportez la index, acolo știu ca are loc scindarea, deci in locul cel mai din dreapta al indexului îmi voi insera noua pagină
     //cu valori mai mari decât cheia mediană
 
     // Deplasăm cheile paginii părinte pentru a insera cheia mediană din fiu
