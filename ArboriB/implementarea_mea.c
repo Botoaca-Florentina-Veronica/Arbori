@@ -51,6 +51,8 @@ pagina *creearePagina(bool frunza)
 // Function to split a full child node
 void scindarePagina(pagina *parent, int index)
 {
+    //aici eu îi dau ca parametru funcției pagina părinte și indexul paginii fiu a paginii părinte, pe care vreau să o împart
+    //fiindcă am nevoie să nu pierd legătura cu pagina părinte, acolo va trebui introdusă ulterior cheia mediană
     pagina *fiu = parent->fii[index];                // Aici, fiu este pagina copil plină care va fi împărțită
     pagina *paginaNoua = creearePagina(fiu->frunza); // paginaNoua este noua pagină creată pentru a primi a doua jumătate din cheile și copiii paginii fiu
 
@@ -72,20 +74,30 @@ void scindarePagina(pagina *parent, int index)
     {
         for (i = 0; i < N / 2; i++)
         {
-            paginaNoua->fii[i] = fiu->fii[i + N / 2];
+            paginaNoua->fii[i] = fiu->fii[i + N / 2];  //aici se află deocamdată și cheia mediană
         }
     }
 
     fiu->nr_chei = N / 2 - 1; // aici actualizăm numarul de chei
     // au rămas doar cheile mai mici decât mediana care urcă la părinte
 
-    // Deplasăm fii paginii părinte pentru a face loc noii pagini
-    for (i = parent->nr_chei; i > index; i--)
+    //Deplasăm fii paginii părinte pentru a face loc noii pagini
+    //Vom deplasa doar paginile ce contin cheile mai mici decât cheia mediană(adica vectorul de pagini fii în care au ramas acestea)
+    //cu un pas spre stanga, rămânând astfel loc pentru încă o pagină. Acolo voi introduce paginaNoua, creeată
+    //de mine la începutul funcției. ATENȚIE, nu parcurg întreg vectorul de fii, merg de la index spre stânga,
+    //nu are rost să parcurg si să shiftez, toate paginile
+
+    for (int i = parent->nr_chei; i > index; i--)
     {
         parent->fii[i + 1] = parent->fii[i];
     }
 
-    parent->fii[index + 1] = paginaNoua; // inserăm noua pagină în locul corespunzător
+    parent->fii[index + 1] = paginaNoua; // inserăm noua pagină ce conține valoarea/valorile mai mari decât
+    //pagina cu cheia mediana, în locul corespunzător
+ 
+    //ATENȚIE, valorile mai mari sunt raportate la cheia mediana, nu e neapărat nevoie ca valorile mai mari sa se afle la final
+    //de aceea ma raportez la index, acolo știu ca are loc scindarea, deci in locul cel mai din dreapta al indexului îmi voi insera noua pagină
+    //cu valori mai mari decât cheia mediană
 
     // Deplasăm cheile paginii părinte pentru a insera cheia mediană din fiu
     for (i = parent->nr_chei - 1; i >= index; i--)
@@ -93,6 +105,9 @@ void scindarePagina(pagina *parent, int index)
         parent->chei[i + 1] = parent->chei[i];
     }
 
+    //cheia mea mediană se afla în paginaNoua, adica in pagina cu valori cel putin mai mari decat cheia mediana
+    //iar in urma inserarii acestei pagini la locul potrivit scindării, adică la index, de aici îmi voi prelua valoarea
+    // fiu->chei[N/2-1] e acelasi lucru cu paginaNoua->chei[N/2-1]
     parent->chei[index] = fiu->chei[N / 2 - 1];
     parent->nr_chei++;
 }
