@@ -1,109 +1,167 @@
-// C code to implement Kruskal's algorithm
 #include <stdio.h>
 #include <stdlib.h>
 
-// Comparator function to use in sorting
-int comparator(const void *p1, const void *p2)
+// Structura pentru reprezentarea muchiilor
+typedef struct Edge
 {
-    const int(*x)[3] = p1;
-    const int(*y)[3] = p2;
+    int source;
+    int destination;
+    int weight;
+} Edge;
 
-    return (*x)[2] - (*y)[2];
+// Structura pentru reprezentarea unui graf
+typedef struct Graph
+{
+    int numVertices;
+    int numEdges;
+    Edge *edges;
+} Graph;
+
+// Structura pentru reprezentarea unui subset pentru union-find
+typedef struct Subset
+{
+    int parent;
+    int rank;
+} Subset;
+
+// Functie pentru a crea un graf
+Graph *createGraph(int numVertices, int numEdges)
+{
+    Graph *graph = (Graph *)malloc(sizeof(Graph));
+    graph->numVertices = numVertices;
+    graph->numEdges = numEdges;
+    graph->edges = (Edge *)malloc(numEdges * sizeof(Edge));
+    return graph;
 }
 
-// Initialization of parent[] and rank[] arrays
-void makeSet(int parent[], int rank[], int n)
+// Functie pentru a adauga o muchie in graf
+void addEdge(Graph *graph, int edgeIndex, int source, int destination, int weight)
 {
-    for (int i = 0; i < n; i++)
-    {
-        parent[i] = i;
-        rank[i] = 0;
-    }
+    graph->edges[edgeIndex].source = source;
+    graph->edges[edgeIndex].destination = destination;
+    graph->edges[edgeIndex].weight = weight;
 }
 
-// Function to find the parent of a node
-int findParent(int parent[], int component)
-{
-    if (parent[component] == component)
-    {
-        return component;
-    }
+// Find-Union este o structură de date utilizată pentru a gestiona și uni seturi disjuncte (neintersectate), și este optimizată pentru a
+// suporta rapid operațiile de unire și de găsire a reprezentantului unui set.
 
-    return parent[component] = findParent(parent, parent[component]);
+// Funcția find este utilizată pentru a găsi reprezentantul (sau rădăcina) setului căruia îi aparține un anumit element
+// Aceasta ajută la verificarea dacă două elemente sunt în același set
+int find(Subset subsets[], int i)
+{
+    // Dacă acest element (i) este propriul său părinte, atunci este reprezentantul setului
+    if (subsets[i].parent != i)
+    {
+        // Dacă nu este, atunci caut recursiv părintele
+        subsets[i].parent = find(subsets, subsets[i].parent);
+    }
+    return subsets[i].parent;
 }
 
-// Function to unite two sets
-void unionSet(int u, int v, int parent[], int rank[], int n)
+// Funcția union este utilizată pentru a uni două seturi. Aceasta funcție utilizează o tehnică numită "uniunea după rang"
+// pentru a menține arborele cât mai plat, ceea ce îmbunătățește performanța operațiilor de find
+void Union(Subset subsets[], int x, int y)
 {
-    // Finding the parents
-    u = findParent(parent, u);
-    v = findParent(parent, v);
+    int rootX = find(subsets, x);
+    int rootY = find(subsets, y);
 
-    if (rank[u] < rank[v])
+    // Atașează arborele cu rang mai mic sub rădăcina arborelui cu rang mai mare
+    if (subsets[rootX].rank < subsets[rootY].rank)
     {
-        parent[u] = v;
+        subsets[rootX].parent = rootY;
     }
-    else if (rank[u] > rank[v])
+    else if (subsets[rootX].rank > subsets[rootY].rank)
     {
-        parent[v] = u;
+        subsets[rootY].parent = rootX;
     }
     else
     {
-        parent[v] = u;
-
-        // Since the rank increases if
-        // the ranks of two sets are same
-        rank[u]++;
+        subsets[rootY].parent = rootX;
+        subsets[rootX].rank++;
     }
 }
 
-// Function to find the MST
-void kruskal(int n, int edge[n][3])
+// Functie de comparare pentru sortarea muchiilor dupa greutate
+int compareEdges(const void *a, const void *b)
 {
-    // First we sort the edge array in ascending order
-    // so that we can access minimum distances/cost
-    qsort(edge, n, sizeof(edge[0]), comparator);
+    Edge *edgeA = (Edge *)a;
+    Edge *edgeB = (Edge *)b;
+    return edgeA->weight - edgeB->weight;
+}
 
-    int parent[n];
-    int rank[n];
-
-    // Function to initialize parent[] and rank[]
-    makeSet(parent, rank, n);
-
-    // To store the minimun cost
-    int minCost = 0;
-
-    printf(
-        "Following are the edges in the constructed MST\n");
-    for (int i = 0; i < n; i++)
+// Functie pentru a afisa arborele partial de cost minim
+void printMST(Edge result[], int numEdges)
+{
+    printf("Muchiile arborelui partial de cost minim:\n");
+    for (int i = 0; i < numEdges; i++)
     {
-        int v1 = findParent(parent, edge[i][0]);
-        int v2 = findParent(parent, edge[i][1]);
-        int wt = edge[i][2];
+        printf("%d - %d: %d\n", result[i].source, result[i].destination, result[i].weight);
+    }
+}
 
-        // If the parents are different that
-        // means they are in different sets so
-        // union them
-        if (v1 != v2)
+// Functie pentru a calcula si a afisa arborele partial de cost minim folosind algoritmul lui Kruskal
+void kruskalMST(Graph *graph)
+{
+    int numVertices = graph->numVertices;
+    Edge result[numVertices]; // va stoca muchiile din arborele partial de cost minim
+    int e = 0;                // numar de muchii in result
+    int i = 0;                // index pentru muchiile sortate
+
+    // Sortam toate muchiile dupa greutate
+    qsort(graph->edges, graph->numEdges, sizeof(Edge), compareEdges);
+
+    // Alocam memorie pentru numVertices subseturi
+    Subset *subsets = (Subset *)malloc(numVertices * sizeof(Subset));
+    for (int v = 0; v < numVertices; v++)
+    {
+        subsets[v].parent = v;
+        subsets[v].rank = 0;
+    }
+
+    while (e < numVertices - 1 && i < graph->numEdges)
+    {
+        // Alege cea mai mica muchie. Daca o includem in rezultat, nu va forma un ciclu
+        Edge nextEdge = graph->edges[i++];
+
+        int x = find(subsets, nextEdge.source);
+        int y = find(subsets, nextEdge.destination);
+
+        if (x != y)
         {
-            unionSet(v1, v2, parent, rank, n);
-            minCost += wt;
-            printf("%d -- %d == %d\n", edge[i][0], edge[i][1], wt);
+            result[e++] = nextEdge;
+            Union(subsets, x, y);
         }
     }
 
-    printf("Minimum Cost Spanning Tree: %d\n", minCost);
+    printMST(result, e);
+    free(subsets);
 }
 
-// Driver code
+// Functia principala
 int main(void)
 {
-    int edge[5][3] = {{0, 1, 10},
-                      {0, 2, 6},
-                      {0, 3, 5},
-                      {1, 3, 15},
-                      {2, 3, 4}};
+    int i;
+    int numVertices = 5;
+    int numEdges = 7;
 
-    kruskal(5, edge);
+    Graph *graph = createGraph(numVertices, numEdges);
+
+    int edges[7][3] = {
+        {0, 1, 5},
+        {1, 4, 10},
+        {1, 2, 2},
+        {2, 4, 3},
+        {2, 3, 9},
+        {3, 4, 11},
+        {4, 0, 7}};
+
+    for (i = 0; i < numEdges; i++)
+    {
+        addEdge(graph, i, edges[i][0], edges[i][1], edges[i][2]);
+    }
+
+    kruskalMST(graph);
+    free(graph->edges);
+    free(graph);
     return 0;
 }
