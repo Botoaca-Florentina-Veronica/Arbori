@@ -74,7 +74,7 @@ void scindarePagina(pagina *parent, int index)
     {
         for (i = 0; i < N / 2; i++)
         {
-            paginaNoua->fii[i] = fiu->fii[i + N / 2];  //aici se află deocamdată și cheia mediană
+            paginaNoua->fii[i] = fiu->fii[i + N / 2];  
         }
     }
 
@@ -105,9 +105,6 @@ void scindarePagina(pagina *parent, int index)
         parent->chei[i + 1] = parent->chei[i];
     }
 
-    //cheia mea mediană se afla în paginaNoua, adica in pagina cu valori cel putin mai mari decat cheia mediana
-    //iar in urma inserarii acestei pagini la locul potrivit scindării, adică la index, de aici îmi voi prelua valoarea
-    // fiu->chei[N/2-1] e acelasi lucru cu paginaNoua->chei[N/2-1]
     parent->chei[index] = fiu->chei[N / 2 - 1];
     parent->nr_chei++;
 }
