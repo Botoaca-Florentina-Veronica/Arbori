@@ -1,73 +1,87 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 
-// Structură pentru un nod din graf
 typedef struct Nod
 {
-    int info;
+    int cheie;
 } Nod;
 
-// Structură pentru un graf
 typedef struct Graf
 {
     int nr_noduri;
-    int **Arce; // Matricea de adiacență
     Nod *Noduri;
+    int **Arce; // Matricea de adiacență
 } Graf;
 
-// Funcție pentru a crea un graf
-Graf *creeazaGraf(int nr_noduri)
+// ARC==MUCHIE
+
+// functie pentru a creea un graf
+Graf *creeareGraf(int nr_noduri)
 {
-    Graf *graf = (Graf *)malloc(sizeof(Graf));
-    graf->nr_noduri = nr_noduri;
-    graf->Noduri = (Nod *)malloc(nr_noduri * sizeof(Nod));
-    graf->Arce = (int **)malloc(nr_noduri * sizeof(int *));
-    for (int i = 0; i < nr_noduri; i++)
+    Graf *grafNou;
+    grafNou = (Graf *)malloc(sizeof(Graf));
+    grafNou->nr_noduri = nr_noduri;
+    grafNou->Noduri = (Nod *)malloc(nr_noduri * sizeof(Nod));
+    grafNou->Arce = (int **)malloc(nr_noduri * sizeof(int *));
+
+    int i, j;
+    for (i = 0; i < nr_noduri; i++)
     {
-        graf->Arce[i] = (int *)malloc(nr_noduri * sizeof(int));
-        for (int j = 0; j < nr_noduri; j++)
+        grafNou->Arce[i] = (int *)malloc(nr_noduri * sizeof(int));
+        for (j = 0; j < nr_noduri; j++)
         {
-            graf->Arce[i][j] = -1; // Inițializare cu -1 pentru a indica absența unei muchii
+            grafNou->Arce[i][j] = -1;
+            // Inițializăm cu -1 pentru a indica absența unei muchii între i și j
         }
     }
-    return graf;
+    return grafNou;
 }
 
-// Funcție pentru a adăuga o muchie în graf
-void adaugaMuchie(Graf *graf, int src, int dest, int cost)
+// functie pentru a adauga o muchie in graf
+void adaugaMuchie(Graf *graf, int source, int destination, int weight)
 {
-    graf->Arce[src][dest] = cost;
-    graf->Arce[dest][src] = cost;
+    graf->Arce[source][destination] = weight;
+    graf->Arce[destination][source] = weight;
+    // graful e neorientat, deci pot merge si de la stg->dr si de la dr->stg
 }
 
-// Algoritmul lui Prim
-void prim(Graf *graf)
+// algoritmul lui Prim
+void Prim(Graf *graf)
 {
-    int vizitat[graf->nr_noduri];
-    for (int i = 0; i < graf->nr_noduri; i++)
+    int vizitat[graf->nr_noduri]; // în vectorul vizitat îmi rețin numarul de noduri
+    int i, j, pas;
+
+    for (i = 0; i < graf->nr_noduri; i++)
     {
-        vizitat[i] = 0;
+        vizitat[i] = 0; // inițializăm toate nodurile din graf ca fiind nevizitate, adica egale cu 0
     }
-    vizitat[0] = 1;
-    for (int pas = 1; pas < graf->nr_noduri; pas++)
+    vizitat[0] = 1; // însă primul nod îl voi introduce mereu în arborele de acoperire minim
+    // de aceea îl inițializez cu 1, ca să îl marchez ca fiind vizitat
+
+    // parcurg graful dat ca parametru
+    for (pas = 1; pas < graf->nr_noduri; pas++)
     {
         int min = 9999, mini = -1, minj = -1;
-        for (int i = 0; i < graf->nr_noduri; i++)
+        // NEAPĂRAT, aceasta linie de cod sa fie în interiorul for-ului principal, pentru a le reseta la fiecare pas
+        // și deci pentru a găsi noua muchie minimă la fiecare iterație
+
+        for (i = 0; i < graf->nr_noduri; i++)
         {
+            // verific daca nodul la care mă aflu este vizitat
+            // începând chiar cu primul nod, deci nu mai e necesară ramura de else
+            // fiindcă știu sigur că primul nod din graf va fi mereu vizitat
             if (vizitat[i] == 1)
             {
-                for (int j = 0; j < graf->nr_noduri; j++)
+                for (j = 0; j < graf->nr_noduri; j++)
                 {
-                    if (vizitat[j] == 0 && graf->Arce[i][j] != -1 && graf->Arce[i][j] < min && (graf->Arce[i][j] <= graf->Noduri[i].info))
+                    // 1) Dacă nodul j este nevizitat(= 0)
+                    // 2) și există muchie între j și i, unde i este deja existent în arborele de
+                    // acoperire minim, în urma verificării de mai sus
+                    // 3) și această muchie este minimă
+                    if (vizitat[j] == 0 && graf->Arce[i][j] != -1 && graf->Arce[i][j] < min)
                     {
-                        graf->Noduri[i].info -= graf->Arce[i][j];
-                        min = graf->Arce[i][j];
-                        mini = i;
-                        minj = j;
-                    }
-                    else if (vizitat[j] == 0 && graf->Arce[i][j] != -1 && graf->Arce[i][j] < min && (graf->Arce[i][j] <= graf->Noduri[j].info))
-                    {
-                        graf->Noduri[j].info -= graf->Arce[i][j];
                         min = graf->Arce[i][j];
                         mini = i;
                         minj = j;
@@ -75,24 +89,29 @@ void prim(Graf *graf)
                 }
             }
         }
-        if (mini != -1 && minj != -1)
+        // Dacă rămân -1, înseamnă că nu s-a găsit nicio muchie validă care să fie adăugată în MST în acest pas
+        //  MST-minimal spanning tree
+        if (mini != -1 && minj != -1) // deci mini și minj s-au schimbat, așa că
         {
             vizitat[minj] = 1;
+            // Aceasta marchează nodul minj (nodul destinație al muchiei cu cost minim) ca fiind vizitat
+            // Astfel, acest nod este acum inclus în MST și va fi luat în considerare în iterațiile viitoare ale algoritmului.
             printf("(%d, %d) - (%d)\n", mini, minj, min);
         }
     }
 }
 
 // Funcția principală
-int main()
+int main(void)
 {
+    int i;
     int nr_noduri = 5;
-    Graf *graf = creeazaGraf(nr_noduri);
+    Graf *graf = creeareGraf(nr_noduri);
 
     // Inițializarea nodurilor
-    for (int i = 0; i < nr_noduri; i++)
+    for (i = 0; i < nr_noduri; i++)
     {
-        graf->Noduri[i].info = 100; // Să zicem că fiecare nod are inițial 100 puncte
+        graf->Noduri[i].cheie = 100; // Să zicem că fiecare nod are inițial 100 puncte
     }
 
     // Adăugarea muchiilor
@@ -105,10 +124,10 @@ int main()
     adaugaMuchie(graf, 3, 4, 9);
 
     // Apelarea algoritmului lui Prim
-    prim(graf);
+    Prim(graf);
 
     // Eliberarea memoriei
-    for (int i = 0; i < nr_noduri; i++)
+    for (i = 0; i < nr_noduri; i++)
     {
         free(graf->Arce[i]);
     }
