@@ -102,8 +102,8 @@ void Dijkstra(Graf *graf, int nod) // îmi dau nodul de la care vreau sa încep 
         }
         if (mini == -1)
         {
-            // dacă nodul mini e neschimbat, înseamnă că nu există altă muchie mai mică
-            // deci ies din buclă
+            //daca nodul mini ramane -1, inseamna ca nu are rost sa merg mai departe
+            //fiindca nu am gasit altă muchie mai mică pentru a face o schimbare de optimizare
             break;
         }
 
