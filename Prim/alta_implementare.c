@@ -61,17 +61,16 @@ void Prim(Graf *graf)
     // de aceea îl inițializez cu 1, ca să îl marchez ca fiind vizitat
 
     // parcurg graful dat ca parametru
+    // incep de la 1 fiindcă știu sigur că am deja un nod introdus in arborele minim de acoperire, acela fiind chiar primul nod vizitat mai sus
     for (pas = 1; pas < graf->nr_noduri; pas++)
     {
         int min = 9999, mini = -1, minj = -1;
         // NEAPĂRAT, aceasta linie de cod sa fie în interiorul for-ului principal, pentru a le reseta la fiecare pas
-        // și deci pentru a găsi noua muchie minimă la fiecare iterație
+        // și deci pentru a găsi o (posibil) nouă muchie minimă la fiecare iterație
 
         for (i = 0; i < graf->nr_noduri; i++)
         {
-            // verific daca nodul la care mă aflu este vizitat
-            // începând chiar cu primul nod, deci nu mai e necesară ramura de else
-            // fiindcă știu sigur că primul nod din graf va fi mereu vizitat
+            // verific daca nodul i la care mă aflu este vizitat
             if (vizitat[i] == 1)
             {
                 for (j = 0; j < graf->nr_noduri; j++)
@@ -79,7 +78,7 @@ void Prim(Graf *graf)
                     // 1) Dacă nodul j este nevizitat(= 0)
                     // 2) și există muchie între j și i, unde i este deja existent în arborele de
                     // acoperire minim, în urma verificării de mai sus
-                    // 3) și această muchie este minimă
+                    // 3) și această muchie i-j este minimă
                     if (vizitat[j] == 0 && graf->Arce[i][j] != -1 && graf->Arce[i][j] < min)
                     {
                         min = graf->Arce[i][j];
@@ -93,9 +92,10 @@ void Prim(Graf *graf)
         //  MST-minimal spanning tree
         if (mini != -1 && minj != -1) // deci mini și minj s-au schimbat, așa că
         {
-            vizitat[minj] = 1;
-            // Aceasta marchează nodul minj (nodul destinație al muchiei cu cost minim) ca fiind vizitat
-            // Astfel, acest nod este acum inclus în MST și va fi luat în considerare în iterațiile viitoare ale algoritmului.
+            // dacă s-au schimbat în graf nodurile mini si minj, înseamnă că am reușit să găsesc cel mai scurt drum de la i la j
+            vizitat[minj] = 1; // așa că, știind că primul nod din graf (mini) este sigur introdus în arborele de acoperire minim,
+            // și am găsit mai sus o muchie optimă până la nodul minj, voi marca nodul minj(nodul destinație al muchiei cu cost minim) 
+            //ca fiind vizitat și deci, introdus în arbore
             printf("(%d, %d) - (%d)\n", mini, minj, min);
         }
     }
