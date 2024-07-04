@@ -46,8 +46,8 @@ void dijkstra(Graf *graf, int nod)
     /*
     Un exemplu simplificat:
       Să presupunem că ai un graf cu nodurile A, B și C, unde A este nodul sursă.
-    Dacă drumul cel mai scurt de la A la C trece prin B, atunci d[C] va conține distanța de la A la C, iar t[C] va fi setat la indexul lui B.
-    Pentru a imprima drumul cel mai scurt de la A la C, ai folosit t pentru a urmări drumul de la A la C
+    Dacă drumul cel mai scurt de la A la B trece prin C, atunci d[B] va conține distanța de la A la B, iar t[B] va fi setat la indexul lui C.
+    Pentru a imprima drumul cel mai scurt de la A la B, ai folosit t pentru a urmări drumul de la A la B
     */
 
     d[nod] = 0;
