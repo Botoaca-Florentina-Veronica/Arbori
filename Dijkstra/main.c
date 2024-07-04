@@ -156,7 +156,6 @@ void Dijkstra(Graf *graf, int nod) // îmi dau nodul de la care vreau sa încep 
         {
             printf("Distanta de la %d la %d este %d\n", nod, i, d[i]);
             printf("Drumul minim este: ");
-            printf("%d ", nod);
             afiseazaDrum(t, i);
             printf("\n");
         }
